@@ -37,7 +37,7 @@ const reasons = [
 
 function HeroArt() {
   return (
-    <svg viewBox="0 0 1440 220" className="absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="none" aria-hidden>
+    <svg viewBox="0 0 1440 220" className="pointer-events-none absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="none" aria-hidden>
       <path fill="#ffffff" fillOpacity="0.08" d="M0 120c240-60 480-60 720 0s480 60 720 0v100H0z" />
       <path fill="#ffffff" fillOpacity="0.12" d="M0 160c200-40 440-40 720 10s520 40 720-10v60H0z" />
       <path fill="#ffffff" d="M0 190c260-30 520-30 720 0s460 30 720 0v30H0z" />
@@ -51,7 +51,7 @@ export default function Home() {
       {/* Hero + booking form */}
       <section id="book" className="relative overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-brand-500 pb-40">
         <div className="pointer-events-none absolute top-16 right-10 hidden text-8xl opacity-20 lg:block">✈</div>
-        <div className="relative mx-auto max-w-7xl px-4 pt-14 md:pt-20">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 pt-14 md:pt-20">
           <div className="mx-auto max-w-3xl text-center text-white">
             <span className="inline-block rounded-full bg-white/15 px-4 py-1 text-xs font-medium tracking-wide uppercase">
               From {formatPrice(pricing.flight)} per traveler
