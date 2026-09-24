@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { BookingRequest, Selection } from "@/lib/booking";
 import type { FlightOffer } from "@/lib/providers/liteapi-flights";
@@ -240,7 +239,6 @@ function HotelCityResults({
 }
 
 export default function SearchResults({ booking, encoded }: { booking: BookingRequest; encoded: string }) {
-  const router = useRouter();
   const [hotelPicks, setHotelPicks] = useState<(Selection | undefined)[]>([]);
 
   const proceed = (selections: Selection[]) => {
@@ -249,7 +247,7 @@ export default function SearchResults({ booking, encoded }: { booking: BookingRe
     } catch {
       // Storage unavailable; the order page will ask the customer to search again.
     }
-    router.push(`/order?b=${encodeURIComponent(encoded)}`);
+    window.location.assign(`/order?b=${encodeURIComponent(encoded)}`);
   };
 
   if (booking.service === "flight") return <FlightResults booking={booking} onSelect={proceed} />;

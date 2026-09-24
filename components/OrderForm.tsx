@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { BookingRequest, Selection, Traveler } from "@/lib/booking";
@@ -9,7 +8,6 @@ import { SELECTION_KEY } from "./SearchResults";
 const emptyTraveler = (): Traveler => ({ title: "Mr", firstName: "", lastName: "", nationality: "" });
 
 export default function OrderForm({ booking, encoded }: { booking: BookingRequest; encoded: string }) {
-  const router = useRouter();
   const [selections, setSelections] = useState<Selection[] | null | undefined>(undefined);
   const [travelers, setTravelers] = useState<Traveler[]>(() =>
     Array.from({ length: booking.travelers }, emptyTraveler),
@@ -48,7 +46,7 @@ export default function OrderForm({ booking, encoded }: { booking: BookingReques
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
       sessionStorage.removeItem(SELECTION_KEY);
-      router.push(`/order/success?id=${encodeURIComponent(data.orderId)}`);
+      window.location.assign(`/order/success?id=${encodeURIComponent(data.orderId)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setLoading(false);

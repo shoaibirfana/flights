@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AirportInput from "./AirportInput";
 import { countries, transitGroups } from "@/lib/countries";
@@ -52,7 +51,6 @@ function TravelerSelect({ value, onChange }: { value: number; onChange: (n: numb
 }
 
 export default function BookingForm() {
-  const router = useRouter();
   const [tab, setTab] = useState<"flight" | "hotel">("flight");
   const [error, setError] = useState("");
   const [searching, setSearching] = useState(false);
@@ -105,6 +103,16 @@ export default function BookingForm() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      await runSearch();
+    } catch (err) {
+      console.error(err);
+      setSearching(false);
+      setError(`Something went wrong: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
+  const runSearch = async () => {
     setError("");
     let booking: BookingRequest;
     if (tab === "flight") {
@@ -150,7 +158,8 @@ export default function BookingForm() {
       setSearching(true);
       booking = { service: "hotel", hotels, travelers: hotelTravelers };
     }
-    router.push(`/search?b=${encodeBooking(booking)}`);
+    // Full page load: always navigates (or shows the browser's own error), never fails silently.
+    window.location.assign(`/search?b=${encodeBooking(booking)}`);
   };
 
   return (
