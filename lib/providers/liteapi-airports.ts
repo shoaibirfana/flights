@@ -18,6 +18,7 @@ export async function getAirports() {
       countryCode: String(a.countryCode ?? a.country ?? "").toUpperCase(),
     }))
     .filter((a) => /^[A-Z]{3}$/.test(a.code) && a.name);
+  if (airports.length === 0) console.error("LiteAPI /data/iataCodes: no usable airports; sample:", JSON.stringify(data.slice(0, 2)));
   cache = { at: Date.now(), airports, byCode: new Map(airports.map((a) => [a.code, a])) };
   return cache;
 }

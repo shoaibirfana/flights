@@ -2,7 +2,7 @@
 // One API key covers hotels, flights and reference data. Sandbox and production share the
 // same host; the key decides the environment.
 
-export const LITEAPI_BASE = "https://api.liteapi.travel/v3.0";
+export const LITEAPI_BASE = process.env.LITEAPI_BASE_URL || "https://api.liteapi.travel/v3.0";
 
 export class ProviderError extends Error {
   constructor(
@@ -14,7 +14,7 @@ export class ProviderError extends Error {
 }
 
 function key(): string {
-  const k = process.env.LITEAPI_KEY;
+  const k = process.env.LITEAPI_KEY?.trim();
   if (!k) throw new ProviderError("Search is not configured yet (missing LITEAPI_KEY).", 503);
   return k;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AirportInput from "./AirportInput";
 import { countries, transitGroups } from "@/lib/countries";
 import { encodeBooking, type BookingRequest, type FlightLeg, type HotelStay } from "@/lib/booking";
@@ -14,6 +14,19 @@ function addDays(days: number): string {
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
+
+// Turns what the customer typed into an airport code: a 3-letter code is used as-is,
+// otherwise the best match from the live airport list.
+async function resolveAirport(text: string): Promise<{ label: string; code: string }> {
+  const t = text.trim();
+  if (!t) throw new Error("Please enter the origin and destination airports.");
+  if (/^[a-z]{3}$/i.test(t)) return { label: t.toUpperCase(), code: t.toUpperCase() };
+  const res = await fetch(`/api/places?q=${encodeURIComponent(t)}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Airport search failed. Please try again.");
+  if (!data.places?.length) throw new Error(`We couldn't find an airport for "${t}". Try the airport code, e.g. KHI.`);
+  return data.places[0];
+}
 
 const emptyLeg = (date: string, from = { label: "", code: "" }): FlightLeg => ({
   from: from.label,
@@ -42,11 +55,14 @@ export default function BookingForm() {
   const router = useRouter();
   const [tab, setTab] = useState<"flight" | "hotel">("flight");
   const [error, setError] = useState("");
+  const [searching, setSearching] = useState(false);
+  const errorRef = useRef<HTMLParagraphElement>(null);
+  const [minDate, setMinDate] = useState("");
 
   // Flight state
   const [tripType, setTripType] = useState<TripType>("roundtrip");
-  const [legs, setLegs] = useState<FlightLeg[]>([emptyLeg(addDays(14))]);
-  const [returnDate, setReturnDate] = useState(addDays(28));
+  const [legs, setLegs] = useState<FlightLeg[]>([emptyLeg("")]);
+  const [returnDate, setReturnDate] = useState("");
   const [cabin, setCabin] = useState<"economy" | "business">("economy");
   const [flightTravelers, setFlightTravelers] = useState(1);
   const [excludeTransit, setExcludeTransit] = useState<string[]>([]);
@@ -54,9 +70,21 @@ export default function BookingForm() {
 
   // Hotel state
   const [hotels, setHotels] = useState<HotelStay[]>([
-    { city: "", countryCode: "", checkIn: addDays(14), checkOut: addDays(21) },
+    { city: "", countryCode: "", checkIn: "", checkOut: "" },
   ]);
   const [hotelTravelers, setHotelTravelers] = useState(1);
+
+  // Default dates are set in the browser (the page itself is pre-built, so its build date would be stale).
+  useEffect(() => {
+    setMinDate(today());
+    setLegs((ls) => ls.map((l, i) => (l.date ? l : { ...l, date: addDays(14 + i * 7) })));
+    setReturnDate((d) => d || addDays(28));
+    setHotels((hs) => hs.map((h) => (h.checkIn ? h : { ...h, checkIn: addDays(14), checkOut: addDays(21) })));
+  }, []);
+
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [error]);
 
   const changeTripType = (t: TripType) => {
     setTripType(t);
@@ -75,34 +103,51 @@ export default function BookingForm() {
   const swap = (i: number) =>
     updateLeg(i, { from: legs[i].to, fromCode: legs[i].toCode, to: legs[i].from, toCode: legs[i].fromCode });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     let booking: BookingRequest;
     if (tab === "flight") {
-      if (legs.some((l) => !l.fromCode || !l.toCode)) {
-        return setError("Please choose the origin and destination airports from the suggestions list.");
-      }
       if (legs.some((l) => !l.date)) return setError("Please choose a departure date for every flight.");
-      if (tripType === "roundtrip" && returnDate < legs[0].date) {
+      if (tripType === "roundtrip" && (!returnDate || returnDate < legs[0].date)) {
         return setError("Return date must be on or after the departure date.");
       }
+      setSearching(true);
+      let resolved: FlightLeg[];
+      try {
+        resolved = await Promise.all(
+          legs.map(async (l) => {
+            const from = l.fromCode ? { label: l.from, code: l.fromCode } : await resolveAirport(l.from);
+            const to = l.toCode ? { label: l.to, code: l.toCode } : await resolveAirport(l.to);
+            return { ...l, from: from.label, fromCode: from.code, to: to.label, toCode: to.code };
+          }),
+        );
+      } catch (err) {
+        setSearching(false);
+        return setError(err instanceof Error ? err.message : "Airport search failed. Please try again.");
+      }
+      if (resolved.some((l) => l.fromCode === l.toCode)) {
+        setSearching(false);
+        return setError("Origin and destination can't be the same airport.");
+      }
+      setLegs(resolved);
       booking = {
         service: "flight",
         tripType,
-        legs,
+        legs: resolved,
         returnDate: tripType === "roundtrip" ? returnDate : undefined,
         cabin,
         travelers: flightTravelers,
         excludeTransit,
       };
     } else {
-      if (hotels.some((h) => !h.city.trim() || !h.countryCode || !h.checkIn || !h.checkOut)) {
-        return setError("Please fill in the city, country and dates for every hotel.");
-      }
+      if (hotels.some((h) => !h.city.trim())) return setError("Please enter the city name for every hotel.");
+      if (hotels.some((h) => !h.countryCode)) return setError("Please select the country for every hotel.");
+      if (hotels.some((h) => !h.checkIn || !h.checkOut)) return setError("Please choose check-in and check-out dates.");
       if (hotels.some((h) => h.checkOut <= h.checkIn)) {
         return setError("Check-out date must be after check-in date.");
       }
+      setSearching(true);
       booking = { service: "hotel", hotels, travelers: hotelTravelers };
     }
     router.push(`/search?b=${encodeBooking(booking)}`);
@@ -182,7 +227,7 @@ export default function BookingForm() {
                   <input
                     type="date"
                     className="input"
-                    min={today()}
+                    min={minDate}
                     value={leg.date}
                     onChange={(e) => updateLeg(i, { date: e.target.value })}
                   />
@@ -221,7 +266,7 @@ export default function BookingForm() {
                 <input
                   type="date"
                   className="input"
-                  min={legs[0].date || today()}
+                  min={legs[0].date || minDate}
                   value={returnDate}
                   onChange={(e) => setReturnDate(e.target.value)}
                 />
@@ -301,7 +346,7 @@ export default function BookingForm() {
                 <input
                   type="date"
                   className="input"
-                  min={today()}
+                  min={minDate}
                   value={h.checkIn}
                   onChange={(e) => updateHotel(i, { checkIn: e.target.value })}
                 />
@@ -312,7 +357,7 @@ export default function BookingForm() {
                   <input
                     type="date"
                     className="input"
-                    min={h.checkIn || today()}
+                    min={h.checkIn || minDate}
                     value={h.checkOut}
                     onChange={(e) => updateHotel(i, { checkOut: e.target.value })}
                   />
@@ -351,10 +396,18 @@ export default function BookingForm() {
         </div>
       )}
 
-      {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p
+          ref={errorRef}
+          role="alert"
+          className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+        >
+          ⚠ {error}
+        </p>
+      )}
 
-      <button type="submit" className="btn-primary mt-6 w-full md:w-auto md:px-10">
-        {tab === "flight" ? "Search Flights" : "Search Hotels"} →
+      <button type="submit" disabled={searching} className="btn-primary mt-6 w-full md:w-auto md:px-10">
+        {searching ? "Searching…" : tab === "flight" ? "Search Flights →" : "Search Hotels →"}
       </button>
     </form>
   );

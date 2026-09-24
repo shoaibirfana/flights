@@ -23,13 +23,11 @@ export default function AirportInput({
   const [error, setError] = useState("");
   const boxRef = useRef<HTMLDivElement>(null);
 
-  // Sync when the selection changes from outside (e.g. the swap button); typing clears the code, not the text.
-  useEffect(() => {
-    if (value.code) setText(value.label);
-  }, [value.code, value.label]);
+  // Sync when the value changes from outside (e.g. the swap button).
+  useEffect(() => setText(value.label), [value.label]);
 
   useEffect(() => {
-    if (!open || text.trim().length < 2 || text === value.label) return;
+    if (!open || text.trim().length < 2 || value.code) return;
     const ctrl = new AbortController();
     const timer = setTimeout(async () => {
       setLoading(true);
@@ -49,7 +47,7 @@ export default function AirportInput({
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [text, open, value.label]);
+  }, [text, open, value.code]);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -70,10 +68,10 @@ export default function AirportInput({
         onChange={(e) => {
           setText(e.target.value);
           setOpen(true);
-          if (value.code) onChange({ label: "", code: "" });
+          onChange({ label: e.target.value, code: "" });
         }}
       />
-      {open && text.trim().length >= 2 && text !== value.label && (
+      {open && text.trim().length >= 2 && !value.code && (
         <ul className="absolute z-30 mt-1 max-h-72 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
           {loading && <li className="px-3 py-2 text-sm text-gray-500">Searching…</li>}
           {!loading && error && <li className="px-3 py-2 text-sm text-red-600">{error}</li>}
