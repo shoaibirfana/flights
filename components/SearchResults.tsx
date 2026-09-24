@@ -3,23 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { BookingRequest, Selection } from "@/lib/booking";
-import type { FlightOffer } from "@/lib/providers/duffel";
-import type { HotelOffer } from "@/lib/providers/liteapi";
+import type { FlightOffer } from "@/lib/providers/liteapi-flights";
+import type { HotelOffer } from "@/lib/providers/liteapi-hotels";
 
 export const SELECTION_KEY = "booking-selections";
 
 const time = (iso: string) => iso.slice(11, 16);
 const day = (iso: string) =>
   new Date(iso.slice(0, 10) + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-
-// ISO 8601 duration (PT13H25M / P1DT2H) to "13h 25m"
-function duration(d: string | null): string {
-  if (!d) return "";
-  const m = d.match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?/);
-  if (!m) return "";
-  const h = Number(m[1] || 0) * 24 + Number(m[2] || 0);
-  return `${h}h ${Number(m[3] || 0)}m`;
-}
 
 const money = (amount: number | string, currency: string) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency }).format(Number(amount));
@@ -103,7 +94,7 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                       </div>
                     </div>
                     <div className="text-xs text-gray-500">
-                      <div>{duration(s.duration)}</div>
+                      <div>{s.duration}</div>
                       <div className="my-1 h-px bg-gray-300" />
                       <div>{s.stops.length === 0 ? "Direct" : `${s.stops.length} stop via ${s.stops.join(", ")}`}</div>
                     </div>
@@ -119,7 +110,7 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
             </div>
             <div className="flex flex-row items-center justify-between gap-3 md:w-44 md:flex-col md:items-end">
               <div className="text-right">
-                <div className="text-xs text-gray-500">Airline fare</div>
+                <div className="text-xs text-gray-500">Airline fare (all travelers)</div>
                 <div className="font-semibold">{money(o.price, o.currency)}</div>
               </div>
               <button
@@ -127,7 +118,7 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                 onClick={() =>
                   onSelect([
                     {
-                      ref: `Duffel offer ${o.id}`,
+                      ref: `LiteAPI flight offer ${o.id}`,
                       summary: [
                         `${o.airline}: ${o.slices.map((s) => s.segments.map((g) => g.flightNumber).join("+")).join(" / ")}`,
                         ...o.slices.map(

@@ -16,10 +16,10 @@ reservation PDF.
 ## Live data providers
 | Data | Provider | Env var |
 |------|----------|---------|
-| Flights + airport search | [Duffel](https://duffel.com) | `DUFFEL_ACCESS_TOKEN` |
-| Hotels + rates | [LiteAPI](https://liteapi.travel) | `LITEAPI_KEY` |
+| Flights, hotels, airport list | [LiteAPI / Nuitee Connect](https://liteapi.travel) | `LITEAPI_KEY` |
 
-Without these keys the site shows a "not configured" message instead of results. It never shows fake data.
+The sandbox key returns test data; the production key returns live data (flights in production must be
+enabled by LiteAPI on request). Without a key the site shows a "not configured" message instead of results. It never shows fake data.
 
 ## Setup
 ```bash

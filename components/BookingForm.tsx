@@ -81,7 +81,7 @@ export default function BookingForm() {
     let booking: BookingRequest;
     if (tab === "flight") {
       if (legs.some((l) => !l.fromCode || !l.toCode)) {
-        return setError("Please choose the origin and destination from the suggestions list.");
+        return setError("Please choose the origin and destination airports from the suggestions list.");
       }
       if (legs.some((l) => !l.date)) return setError("Please choose a departure date for every flight.");
       if (tripType === "roundtrip" && returnDate < legs[0].date) {
@@ -153,7 +153,7 @@ export default function BookingForm() {
               <div className="md:col-span-4">
                 <AirportInput
                   label={legs.length > 1 ? `From (flight ${i + 1})` : "Origin"}
-                  placeholder="City or airport, e.g. Karachi"
+                  placeholder="Airport or code, e.g. Karachi, KHI"
                   value={{ label: leg.from, code: leg.fromCode }}
                   onChange={(v) => updateLeg(i, { from: v.label, fromCode: v.code })}
                 />
@@ -171,7 +171,7 @@ export default function BookingForm() {
               <div className="md:col-span-4">
                 <AirportInput
                   label="Destination"
-                  placeholder="City or airport, e.g. Paris"
+                  placeholder="Airport or code, e.g. Paris, CDG"
                   value={{ label: leg.to, code: leg.toCode }}
                   onChange={(v) => updateLeg(i, { to: v.label, toCode: v.code })}
                 />

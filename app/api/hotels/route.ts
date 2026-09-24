@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { validateBooking } from "@/lib/booking";
-import { ProviderError } from "@/lib/providers/duffel";
-import { searchHotels } from "@/lib/providers/liteapi";
+import { ProviderError } from "@/lib/providers/liteapi";
+import { searchHotels } from "@/lib/providers/liteapi-hotels";
 
 export const maxDuration = 60;
 

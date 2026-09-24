@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Place = { code: string; label: string; type: "airport" | "city" };
+type Place = { code: string; label: string };
 
-// Airport/city autocomplete backed by live data from /api/places.
+// Airport autocomplete backed by the live airport list from /api/places.
 export default function AirportInput({
   label,
   placeholder,
@@ -82,7 +82,7 @@ export default function AirportInput({
           )}
           {!loading &&
             places.map((p) => (
-              <li key={`${p.type}-${p.code}`}>
+              <li key={p.code}>
                 <button
                   type="button"
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-brand-50"
@@ -92,7 +92,7 @@ export default function AirportInput({
                     setOpen(false);
                   }}
                 >
-                  <span>{p.type === "city" ? "🏙" : "✈"}</span>
+                  <span>✈</span>
                   <span>{p.label}</span>
                 </button>
               </li>
