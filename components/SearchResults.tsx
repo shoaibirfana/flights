@@ -26,8 +26,9 @@ function useSearch<T>(url: string, body: unknown) {
     setState({ loading: true, error: "", offers: [] });
     fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: key, signal: ctrl.signal })
       .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Search failed");
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 504) throw new Error("The airline systems took too long to answer. Please search again.");
+        if (!res.ok) throw new Error(data.error || "Search failed. Please try again.");
         setState({ loading: false, error: "", offers: data.offers });
       })
       .catch((e) => {
@@ -59,14 +60,38 @@ function Status({ loading, error, empty, what }: { loading: boolean; error: stri
 function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelect: (s: Selection[]) => void }) {
   const { loading, error, offers } = useSearch<FlightOffer>("/api/flights", booking);
   const [open, setOpen] = useState<string | null>(null);
+  const [stops, setStops] = useState<"all" | 0 | 1 | 2>("all");
+
+  const group = (o: FlightOffer) => Math.min(o.maxStops, 2);
+  const filters = [
+    { key: "all" as const, label: "All", count: offers.length },
+    { key: 0 as const, label: "Direct", count: offers.filter((o) => group(o) === 0).length },
+    { key: 1 as const, label: "1 stop", count: offers.filter((o) => group(o) === 1).length },
+    { key: 2 as const, label: "2+ stops", count: offers.filter((o) => group(o) === 2).length },
+  ];
+  const shown = stops === "all" ? offers : offers.filter((o) => group(o) === stops);
 
   return (
     <div className="space-y-4">
       <Status loading={loading} error={error} empty={offers.length === 0} what="flights" />
       {!loading && offers.length > 0 && (
-        <p className="text-sm text-gray-600">{offers.length} flights found, cheapest first</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {filters.map((f) => (
+            <button
+              key={f.label}
+              disabled={f.count === 0}
+              onClick={() => setStops(f.key)}
+              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                stops === f.key ? "border-brand-600 bg-brand-600 text-white" : "border-gray-300 bg-white text-gray-700 hover:border-brand-600"
+              }`}
+            >
+              {f.label} ({f.count})
+            </button>
+          ))}
+          <span className="ml-auto text-sm text-gray-500">Direct flights first, then by price</span>
+        </div>
       )}
-      {offers.map((o) => (
+      {shown.map((o) => (
         <div key={o.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
           <div className="flex flex-col gap-5 md:flex-row md:items-center">
             <div className="flex items-center gap-3 md:w-48">
@@ -95,7 +120,11 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                     <div className="text-xs text-gray-500">
                       <div>{s.duration}</div>
                       <div className="my-1 h-px bg-gray-300" />
-                      <div>{s.stops.length === 0 ? "Direct" : `${s.stops.length} stop via ${s.stops.join(", ")}`}</div>
+                      <div className={s.stops.length === 0 ? "font-semibold text-green-600" : ""}>
+                        {s.stops.length === 0
+                          ? "Direct"
+                          : `${s.stops.length} ${s.stops.length === 1 ? "stop" : "stops"} via ${s.stops.join(", ")}`}
+                      </div>
                     </div>
                     <div>
                       <div className="text-lg font-bold">{time(last.arriveAt)}</div>

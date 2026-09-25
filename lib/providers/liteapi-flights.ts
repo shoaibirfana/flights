@@ -19,7 +19,11 @@ type LiteSegment = {
   flight?: { marketingNumber?: string };
   carrier?: { marketingCode?: string; marketingName?: string; marketingLogo?: string; operatingName?: string };
 };
-type LiteOffer = { offerId: string; expiration?: string; pricing?: { display?: { total?: number; currency?: string } } };
+type LiteOffer = {
+  offerId: string;
+  expiration?: string;
+  pricing?: { display?: { total?: number; currency?: string }; total?: number; totalAmount?: number; currency?: string };
+};
 type LiteJourney = { journeyKey: string; segments?: LiteSegment[]; offers?: LiteOffer[] };
 
 export type FlightSegment = {
@@ -45,6 +49,8 @@ export type FlightOffer = {
   currency: string;
   expiresAt: string | null;
   slices: FlightSlice[];
+  // Most stops on any one leg of the trip (0 = all direct)
+  maxStops: number;
 };
 
 // Times are airport-local, so a trip's length = flying time of each segment + layovers
@@ -112,16 +118,33 @@ export async function searchFlights(b: BookingRequest): Promise<FlightOffer[]> {
       ? [{ ...legs[0], direction: "OUTBOUND" }, { ...legs[1], direction: "INBOUND" }]
       : legs;
 
-  const { data = [] } = await lite<{ data?: { journeys?: LiteJourney[] }[] }>("/flights/rates", {
-    method: "POST",
-    body: JSON.stringify({
-      legs: directed,
-      adults: b.travelers,
-      cabinClass: b.cabin === "business" ? "BUSINESS" : "ECONOMY",
-      currency: "USD",
-      filters: { maxStops: 2 },
-    }),
-  });
+  const request = () =>
+    lite<{ data?: { journeys?: LiteJourney[] }[] }>("/flights/rates", {
+      method: "POST",
+      body: JSON.stringify({
+        legs: directed,
+        adults: b.travelers,
+        cabinClass: b.cabin === "business" ? "BUSINESS" : "ECONOMY",
+        currency: "USD",
+        filters: { maxStops: 2 },
+      }),
+    });
+
+  // Airline systems occasionally time out or answer empty; try once more before saying "no flights".
+  let data: { journeys?: LiteJourney[] }[] = [];
+  const started = Date.now();
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    // Only retry if there's time left within the server's 60-second limit.
+    if (attempt === 2 && Date.now() - started > 25000) break;
+    try {
+      data = (await request()).data ?? [];
+      if (data.some((d) => d.journeys?.length)) break;
+      console.warn(`LiteAPI flights: no journeys on attempt ${attempt}`);
+    } catch (e) {
+      if (attempt === 2 || Date.now() - started > 25000) throw e;
+      console.warn(`LiteAPI flights: attempt ${attempt} failed, retrying`, e);
+    }
+  }
 
   // Countries the customer wants to avoid transiting (looked up from the airport list).
   const avoid = transitCodes(b.excludeTransit ?? []);
@@ -135,8 +158,8 @@ export async function searchFlights(b: BookingRequest): Promise<FlightOffer[]> {
     // Cheapest priced fare for this routing; never show an offer without a price.
     let best: { offer: LiteOffer; total: number; currency: string } | null = null;
     for (const o of journey.offers ?? []) {
-      const total = o.pricing?.display?.total;
-      const currency = o.pricing?.display?.currency;
+      const total = o.pricing?.display?.total ?? o.pricing?.total ?? o.pricing?.totalAmount;
+      const currency = o.pricing?.display?.currency ?? o.pricing?.currency;
       if (typeof total === "number" && currency && (!best || total < best.total)) best = { offer: o, total, currency };
     }
     if (!best) continue;
@@ -148,6 +171,7 @@ export async function searchFlights(b: BookingRequest): Promise<FlightOffer[]> {
     }
 
     const first = segs[0];
+    const mapped = slices.map((sl) => sl.map(mapSegment));
     offers.push({
       id: best.offer.offerId,
       airline: first.carrier?.marketingName ?? first.carrier?.marketingCode ?? "Airline",
@@ -156,8 +180,9 @@ export async function searchFlights(b: BookingRequest): Promise<FlightOffer[]> {
       price: best.total,
       currency: best.currency,
       expiresAt: best.offer.expiration ?? null,
-      slices: slices.map((sl) => {
-        const segments = sl.map(mapSegment);
+      maxStops: Math.max(...mapped.map((segments) => segments.length - 1)),
+      slices: slices.map((sl, i) => {
+        const segments = mapped[i];
         const start = segments[0];
         const end = segments[segments.length - 1];
         return {
@@ -171,15 +196,25 @@ export async function searchFlights(b: BookingRequest): Promise<FlightOffer[]> {
     });
   }
 
-  // Keep one offer per exact set of flights, cheapest first.
+  const total = data.reduce((n, d) => n + (d.journeys?.length ?? 0), 0);
+  console.log(`LiteAPI flights: ${total} journeys, ${offers.length} shown after filters`);
+
+  // One offer per exact set of flights; direct first, then 1 stop, then 2+, cheapest first in each.
+  // Keep a share of each group so expensive direct flights are never crowded out by cheap connections.
   const seen = new Set<string>();
-  return offers
-    .sort((a, z) => a.price - z.price)
+  const unique = offers
+    .sort((a, z) => a.maxStops - z.maxStops || a.price - z.price)
     .filter((o) => {
       const k = o.slices.map((s) => s.segments.map((g) => g.flightNumber + g.departAt).join()).join("|");
       if (seen.has(k)) return false;
       seen.add(k);
       return true;
-    })
-    .slice(0, 50);
+    });
+  const perGroup: Record<number, number> = { 0: 60, 1: 60, 2: 40 };
+  const counts: Record<number, number> = {};
+  return unique.filter((o) => {
+    const g = Math.min(o.maxStops, 2);
+    counts[g] = (counts[g] ?? 0) + 1;
+    return counts[g] <= perGroup[g];
+  });
 }
