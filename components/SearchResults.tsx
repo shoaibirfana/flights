@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { BookingRequest, Selection } from "@/lib/booking";
 import type { FlightOffer } from "@/lib/providers/liteapi-flights";
 import type { HotelOffer } from "@/lib/providers/liteapi-hotels";
+import SearchLoader from "./SearchLoader";
 
 export const SELECTION_KEY = "booking-selections";
 
@@ -39,14 +40,19 @@ function useSearch<T>(url: string, body: unknown) {
   return state;
 }
 
-function Status({ loading, error, empty, what }: { loading: boolean; error: string; empty: boolean; what: string }) {
+function Status({
+  loading,
+  error,
+  empty,
+  what,
+}: {
+  loading: boolean;
+  error: string;
+  empty: boolean;
+  what: "flights" | "hotels";
+}) {
   if (loading)
-    return (
-      <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand-100 border-t-brand-600" />
-        <p className="mt-4 text-gray-600">Searching live {what}. This can take up to 30 seconds…</p>
-      </div>
-    );
+    return <SearchLoader what={what} />;
   if (error) return <div className="rounded-2xl bg-red-50 p-6 text-red-700">{error}</div>;
   if (empty)
     return (
