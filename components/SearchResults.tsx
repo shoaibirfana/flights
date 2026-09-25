@@ -88,7 +88,7 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
               {f.label} ({f.count})
             </button>
           ))}
-          <span className="ml-auto text-sm text-gray-500">Direct flights first, then by price</span>
+          <span className="ml-auto text-sm text-gray-500">Direct flights first</span>
         </div>
       )}
       {shown.map((o) => (
@@ -136,11 +136,7 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                 );
               })}
             </div>
-            <div className="flex flex-row items-center justify-between gap-3 md:w-44 md:flex-col md:items-end">
-              <div className="text-right">
-                <div className="text-xs text-gray-500">Airline fare (all travelers)</div>
-                <div className="font-semibold">{money(o.price, o.currency)}</div>
-              </div>
+            <div className="flex justify-end md:w-32">
               <button
                 className="btn-primary !px-5 !py-2 text-sm"
                 onClick={() =>
@@ -155,7 +151,6 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                               s.stops.length ? ` (via ${s.stops.join(", ")})` : ""
                             }`,
                         ),
-                        `Airline fare: ${money(o.price, o.currency)}`,
                       ],
                     },
                   ])
