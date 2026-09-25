@@ -19,7 +19,8 @@ reservation PDF.
 | Flights, hotels, airport list | [LiteAPI / Nuitee Connect](https://liteapi.travel) | `LITEAPI_KEY` |
 
 Airport city names come from the [OpenFlights](https://openflights.org/data) airport database
-(ODbL), stored in `lib/data/airport-cities.json`.
+(ODbL) and [OurAirports](https://ourairports.com/data) (public domain), stored in
+`lib/data/airport-cities.json`.
 
 The sandbox key returns test data; the production key returns live data (flights in production must be
 enabled by LiteAPI on request). Without a key the site shows a "not configured" message instead of results. It never shows fake data.

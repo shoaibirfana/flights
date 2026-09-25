@@ -1,6 +1,7 @@
 // Airport list from GET /data/iataCodes, cached for a day and searched in memory.
-// LiteAPI gives airport names only, so city names come from the OpenFlights airport database
-// (https://openflights.org/data, ODbL), bundled as an IATA → city lookup.
+// LiteAPI gives airport names only, so city names come from a bundled IATA → city lookup built from
+// OpenFlights (https://openflights.org/data, ODbL) with gaps filled from OurAirports
+// (https://ourairports.com/data, public domain).
 import cityByCode from "../data/airport-cities.json";
 import { lite } from "./liteapi";
 
