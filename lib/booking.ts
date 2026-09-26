@@ -107,8 +107,11 @@ export function validateBooking(input: unknown): BookingRequest | null {
   return null;
 }
 
-// Our service fee for this booking.
+// Our service fee for this booking. TEST_ORDER_PRICE (e.g. "1") temporarily charges that flat amount for
+// every order, for a real-money payment test; remove it afterwards. Server-side only.
 export function bookingPrice(b: BookingRequest): number {
+  const testPrice = Number(process.env.TEST_ORDER_PRICE);
+  if (testPrice > 0) return testPrice;
   return calculatePrice({
     service: b.service,
     travelers: b.travelers,

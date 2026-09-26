@@ -13,6 +13,7 @@ export async function GET() {
     payments: process.env.STRIPE_SECRET_KEY?.trim()
       ? `on (${process.env.STRIPE_SECRET_KEY.trim().startsWith("sk_live_") ? "live" : "test"} mode)`
       : "off (orders are submitted without payment)",
+    ...(Number(process.env.TEST_ORDER_PRICE) > 0 && { testOrderPrice: `ON: every order costs ${process.env.TEST_ORDER_PRICE} (remove TEST_ORDER_PRICE after testing)` }),
     stripeWebhook: process.env.STRIPE_WEBHOOK_SECRET?.trim() ? "configured" : "not configured (success page sends the emails)",
   };
   if (key) {
