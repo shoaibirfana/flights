@@ -2,12 +2,19 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import OrderForm from "@/components/OrderForm";
 import { bookingPrice, decodeBooking, describeBooking } from "@/lib/booking";
+import { paymentsEnabled } from "@/lib/payments";
 import { formatPrice } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Complete Your Booking" };
 
-export default async function OrderPage({ searchParams }: { searchParams: Promise<{ b?: string }> }) {
-  const { b } = await searchParams;
+export const dynamic = "force-dynamic";
+
+export default async function OrderPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ b?: string; cancelled?: string }>;
+}) {
+  const { b, cancelled } = await searchParams;
   const booking = decodeBooking(b);
 
   if (!booking) {
@@ -23,6 +30,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
   }
 
   const price = bookingPrice(booking);
+  const pay = paymentsEnabled();
 
   return (
     <div className="bg-gray-50">
@@ -32,7 +40,12 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
           <p className="mt-2 text-gray-600">
             Enter the traveler names exactly as they appear on the passports.
           </p>
-          <OrderForm booking={booking} encoded={b!} />
+          {cancelled && (
+            <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Payment was cancelled and you have not been charged. You can try again below.
+            </p>
+          )}
+          <OrderForm booking={booking} encoded={b!} payLabel={pay ? `Pay ${formatPrice(price)} →` : null} />
         </div>
         <aside className="h-fit rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 lg:sticky lg:top-24">
           <h2 className="text-lg font-semibold">Booking Summary</h2>
@@ -46,7 +59,9 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
             <span className="text-2xl font-bold text-brand-600">{formatPrice(price)}</span>
           </div>
           <p className="mt-2 text-xs text-gray-500">
-            No payment is taken now. Our team will contact you to confirm your order.
+            {pay
+              ? "Secure payment by card, Apple Pay or Google Pay on the next step."
+              : "No payment is taken now. Our team will contact you to confirm your order."}
           </p>
           <Link href={`/search?b=${encodeURIComponent(b!)}`} className="mt-4 block text-sm text-brand-600 hover:underline">
             ← Back to results

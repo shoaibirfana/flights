@@ -7,7 +7,16 @@ import { SELECTION_KEY } from "./SearchResults";
 
 const emptyTraveler = (): Traveler => ({ title: "Mr", firstName: "", lastName: "", nationality: "" });
 
-export default function OrderForm({ booking, encoded }: { booking: BookingRequest; encoded: string }) {
+export default function OrderForm({
+  booking,
+  encoded,
+  payLabel,
+}: {
+  booking: BookingRequest;
+  encoded: string;
+  // Button text when online payment is on (e.g. "Pay $15 →"); null when orders are submitted without payment
+  payLabel: string | null;
+}) {
   const [selections, setSelections] = useState<Selection[] | null | undefined>(undefined);
   const [travelers, setTravelers] = useState<Traveler[]>(() =>
     Array.from({ length: booking.travelers }, emptyTraveler),
@@ -45,6 +54,11 @@ export default function OrderForm({ booking, encoded }: { booking: BookingReques
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
+      if (data.checkoutUrl) {
+        // Stripe's payment page; the selection stays saved in case the customer comes back to retry.
+        window.location.assign(data.checkoutUrl);
+        return;
+      }
       sessionStorage.removeItem(SELECTION_KEY);
       window.location.assign(`/order/success?id=${encodeURIComponent(data.orderId)}`);
     } catch (err) {
@@ -173,7 +187,7 @@ export default function OrderForm({ booking, encoded }: { booking: BookingReques
       {error && <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>}
 
       <button type="submit" disabled={loading} className="btn-primary w-full md:w-auto md:px-12">
-        {loading ? "Submitting…" : "Submit Order →"}
+        {loading ? (payLabel ? "Opening secure payment…" : "Submitting…") : payLabel ?? "Submit Order →"}
       </button>
     </form>
   );

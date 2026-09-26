@@ -10,8 +10,7 @@ reservation PDF.
 - Live airport/city autocomplete
 - Order form → email to the business + confirmation email to the customer
 - Pages: Home, About, FAQ, Contact, Terms, Privacy, Refund Policy
-- WhatsApp chat button
-- No payment yet (to be added later)
+- Online payment with Stripe Checkout (card, Apple Pay, Google Pay) when `STRIPE_SECRET_KEY` is set
 
 ## Live data providers
 | Data | Provider | Env var |
@@ -24,6 +23,15 @@ Airport city names come from the [OpenFlights](https://openflights.org/data) air
 
 The sandbox key returns test data; the production key returns live data (flights in production must be
 enabled by LiteAPI on request). Without a key the site shows a "not configured" message instead of results. It never shows fake data.
+
+## Payments (Stripe)
+1. Add `STRIPE_SECRET_KEY` (`sk_test_...` for testing, `sk_live_...` for real payments).
+2. In Stripe → Developers → Webhooks, add the endpoint `https://YOUR-SITE/api/stripe-webhook` with the events
+   `checkout.session.completed` and `checkout.session.async_payment_succeeded`, then add its signing
+   secret as `STRIPE_WEBHOOK_SECRET`.
+
+Order emails are sent only after Stripe confirms the payment. Without the webhook, the success page sends
+them instead.
 
 ## Setup
 ```bash
