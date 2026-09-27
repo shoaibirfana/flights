@@ -1,6 +1,6 @@
 // Central site settings — edit this file to rebrand the website.
 export const site = {
-  name: "FlyVisaDocs",
+  name: "Viza Bunny",
   tagline: "Flight & hotel reservations for visa applications",
   email: "support@example.com",
   // International format, digits only (used for WhatsApp links)

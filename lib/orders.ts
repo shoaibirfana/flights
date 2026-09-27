@@ -4,7 +4,7 @@ import { formatPrice, site } from "./site";
 
 export function newOrderId(): string {
   const date = new Date().toISOString().slice(2, 10).replace(/-/g, "");
-  return `FV${date}-${randomBytes(3).toString("hex").toUpperCase()}`;
+  return `VB${date}-${randomBytes(3).toString("hex").toUpperCase()}`;
 }
 
 const clean = (v: unknown, max = 100) => (typeof v === "string" ? v.trim().slice(0, max) : "");

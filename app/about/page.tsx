@@ -24,7 +24,7 @@ export default function AboutPage() {
           <li>Live flight schedules and hotel availability</li>
           <li>Verifiable airline booking references (PNR)</li>
           <li>Free date changes</li>
-          <li>Support by email and WhatsApp</li>
+          <li>Support by email</li>
         </ul>
         <p>
           <Link href="/#book" className="text-brand-600 underline">

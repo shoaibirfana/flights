@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #f4efff;
-  --color-brand-100: #e8dcff;
-  --color-brand-200: #d1b9ff;
-  --color-brand-500: #7a2bff;
-  --color-brand-600: #6400e4;
-  --color-brand-700: #5200bb;
-  --color-navy-900: #141c3a;
-  --color-navy-700: #2a3560;
-  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  /* Viza Bunny brand: navy #17313e, cream #f3e2d4, black, white */
+  --color-brand-50: #faf3ec;
+  --color-brand-100: #f3e2d4;
+  --color-brand-200: #e6cbb4;
+  --color-brand-500: #2b4d5d;
+  --color-brand-600: #17313e;
+  --color-brand-700: #0e212a;
+  --color-navy-900: #17313e;
+  --color-navy-700: #2b4d5d;
+  --color-cream: #f3e2d4;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
 }
 
 html {

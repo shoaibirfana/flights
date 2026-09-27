@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BookingForm from "@/components/BookingForm";
+import { LogoMark } from "@/components/Logo";
 import { faqs } from "@/lib/faqs";
 import { formatPrice, pricing, site } from "@/lib/site";
 
@@ -32,7 +33,7 @@ const reasons = [
   "Avoid transit in countries that require a transit visa",
   "Free date changes if your appointment or travel plan changes",
   "No need to buy an expensive non-refundable ticket before your visa is approved",
-  "Support by email and WhatsApp",
+  "Support by email",
 ];
 
 function HeroArt() {
@@ -50,10 +51,14 @@ export default function Home() {
     <>
       {/* Hero + booking form */}
       <section id="book" className="relative overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-brand-500 pb-40">
-        <div className="pointer-events-none absolute top-16 right-10 hidden text-8xl opacity-20 lg:block">✈</div>
+        <LogoMark
+          className="pointer-events-none absolute top-14 right-8 hidden h-48 w-auto opacity-10 lg:block"
+          color="#f3e2d4"
+          accent="#17313e"
+        />
         <div className="relative z-10 mx-auto max-w-7xl px-4 pt-14 md:pt-20">
           <div className="mx-auto max-w-3xl text-center text-white">
-            <span className="inline-block rounded-full bg-white/15 px-4 py-1 text-xs font-medium tracking-wide uppercase">
+            <span className="inline-block rounded-full bg-cream px-4 py-1 text-xs font-medium tracking-wide text-navy-900 uppercase">
               From {formatPrice(pricing.flight)} per traveler
             </span>
             <h1 className="mt-4 text-3xl leading-tight font-bold md:text-5xl">
