@@ -161,7 +161,9 @@ export default function Home() {
                   "One-way or round-trip",
                   "Verifiable airline PNR",
                   "No fee to change date",
-                  `Multi-city: +${formatPrice(pricing.extraFlightLeg)} per extra flight`,
+                  pricing.extraFlightLeg > 0
+                    ? `Multi-city: +${formatPrice(pricing.extraFlightLeg)} per extra flight`
+                    : "Multi-city at no extra cost",
                 ],
                 href: "/#book",
               },

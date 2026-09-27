@@ -17,11 +17,11 @@ export const site = {
 
 export const pricing = {
   // Price per traveler for a one-way or round-trip flight reservation
-  flight: 15,
+  flight: 1,
   // Extra per traveler for every multi-city leg beyond the second
-  extraFlightLeg: 5,
+  extraFlightLeg: 0,
   // Price per traveler for one hotel (one city)
-  hotel: 15,
+  hotel: 1,
 };
 
 export type ServiceType = "flight" | "hotel";

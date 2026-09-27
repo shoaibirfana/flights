@@ -27,7 +27,11 @@ export const faqs: { q: string; a: string }[] = [
   },
   {
     q: "How much does it cost?",
-    a: `A flight reservation costs ${formatPrice(pricing.flight)} per traveler for one-way or round-trip. Multi-city costs an extra ${formatPrice(pricing.extraFlightLeg)} per traveler for each flight after the second. A hotel reservation costs ${formatPrice(pricing.hotel)} per traveler per city.`,
+    a: `A flight reservation costs ${formatPrice(pricing.flight)} per traveler for one-way or round-trip.${
+      pricing.extraFlightLeg > 0
+        ? ` Multi-city costs an extra ${formatPrice(pricing.extraFlightLeg)} per traveler for each flight after the second.`
+        : ""
+    } A hotel reservation costs ${formatPrice(pricing.hotel)} per traveler per city.`,
   },
   {
     q: "Can I use the reservation to board a flight?",
