@@ -94,6 +94,12 @@ export default function OrderForm({
             </ul>
           ))}
         </div>
+        <Link
+          href={`/order/summary?b=${encodeURIComponent(encoded)}`}
+          className="mt-4 inline-block text-sm font-medium text-brand-600 hover:underline"
+        >
+          Just want to remember your dates? View a free trip summary →
+        </Link>
       </div>
       {travelers.map((t, i) => (
         <div key={i} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">

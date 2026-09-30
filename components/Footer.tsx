@@ -4,7 +4,7 @@ import { site } from "@/lib/site";
 
 export default function Footer() {
   return (
-    <footer className="bg-navy-900 text-gray-300">
+    <footer className="bg-navy-900 text-gray-300 print:hidden">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-4">
         <div className="md:col-span-2">
           <Logo light />
