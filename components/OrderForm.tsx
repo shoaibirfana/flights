@@ -55,11 +55,11 @@ export default function OrderForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
       if (data.checkoutUrl) {
-        // Stripe's payment page; the selection stays saved in case the customer comes back to retry.
+        // Stripe's payment page; the selection stays saved for a retry and for the trip summary.
         window.location.assign(data.checkoutUrl);
         return;
       }
-      sessionStorage.removeItem(SELECTION_KEY);
+      // The selection stays saved so the success page can link to the trip summary.
       window.location.assign(`/order/success?id=${encodeURIComponent(data.orderId)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

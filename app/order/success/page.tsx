@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import TripSummaryLink from "@/components/TripSummaryLink";
 import { getStripe, notifyPaid, webhookConfigured } from "@/lib/payments";
 
 export const metadata: Metadata = { title: "Order Received" };
@@ -65,6 +66,7 @@ export default async function SuccessPage({
         <Link href="/" className="btn-primary">
           Back to Home
         </Link>
+        <TripSummaryLink />
       </div>
     </div>
   );
