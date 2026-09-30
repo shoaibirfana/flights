@@ -17,10 +17,19 @@ export type BookingRequest = {
   hotels?: HotelStay[];
 };
 
-export type Traveler = { title: string; firstName: string; lastName: string; nationality: string };
+export type Traveler = {
+  title: string;
+  firstName: string;
+  lastName: string;
+  nationality: string;
+  // Required by airlines for a real booking (Duffel hold orders)
+  bornOn?: string;
+  gender?: "m" | "f";
+};
 
-// What the customer picked from the live search results (for the team to reserve).
-export type Selection = { ref: string; summary: string[] };
+// What the customer picked from the live search results. `hold` is set for flights that can be
+// reserved automatically as a Duffel hold order.
+export type Selection = { ref: string; summary: string[]; hold?: { offerId: string; passengerIds: string[] } };
 
 export type Order = {
   booking: BookingRequest;

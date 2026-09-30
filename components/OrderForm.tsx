@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { BookingRequest, Selection, Traveler } from "@/lib/booking";
+import { BOOKING_REF_KEY } from "./BookingReference";
 import { SELECTION_KEY } from "./SearchResults";
 
 const emptyTraveler = (): Traveler => ({ title: "Mr", firstName: "", lastName: "", nationality: "" });
@@ -60,12 +61,21 @@ export default function OrderForm({
         return;
       }
       sessionStorage.removeItem(SELECTION_KEY);
+      if (data.pnr) {
+        sessionStorage.setItem(
+          BOOKING_REF_KEY,
+          JSON.stringify({ orderId: data.orderId, pnr: data.pnr, holdUntil: data.holdUntil ?? null }),
+        );
+      }
       window.location.assign(`/order/success?id=${encodeURIComponent(data.orderId)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setLoading(false);
     }
   };
+
+  // Airlines need date of birth and gender to reserve a seat as a hold order.
+  const needsHoldDetails = Boolean(selections?.some((sel) => sel.hold));
 
   if (selections === undefined) return null;
   if (!selections) {
@@ -135,6 +145,34 @@ export default function OrderForm({
                 onChange={(e) => update(i, { nationality: e.target.value })}
               />
             </div>
+            {needsHoldDetails && (
+              <>
+                <div className="md:col-span-3">
+                  <label className="label">Date of Birth</label>
+                  <input
+                    required
+                    type="date"
+                    className="input"
+                    max={new Date().toISOString().slice(0, 10)}
+                    value={t.bornOn ?? ""}
+                    onChange={(e) => update(i, { bornOn: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="label">Gender</label>
+                  <select
+                    required
+                    className="input"
+                    value={t.gender ?? ""}
+                    onChange={(e) => update(i, { gender: e.target.value as "m" | "f" })}
+                  >
+                    <option value="">Select</option>
+                    <option value="m">Male</option>
+                    <option value="f">Female</option>
+                  </select>
+                </div>
+              </>
+            )}
           </div>
         </div>
       ))}

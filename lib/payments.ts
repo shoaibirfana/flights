@@ -5,6 +5,7 @@
 // emails are sent only once Stripe confirms the payment (webhook, or the success page as a fallback).
 import Stripe from "stripe";
 import type { Order } from "./booking";
+import { holdSummary, placeHold, type HoldRequest } from "./hold";
 import { sendOrderEmails } from "./notify";
 import { formatPrice, site } from "./site";
 
@@ -18,17 +19,17 @@ export const webhookConfigured = () => Boolean(process.env.STRIPE_WEBHOOK_SECRET
 
 // Stripe metadata values are limited to 500 characters (50 keys), so the summary is split into parts.
 const CHUNK = 490;
-const MAX_CHUNKS = 40;
+const MAX_CHUNKS = 36; // summary parts (s0…); hold request parts use h0…h4
 
-function packSummary(text: string): Record<string, string> {
+function pack(prefix: string, text: string, max: number): Record<string, string> {
   const parts: Record<string, string> = {};
-  for (let i = 0; i < MAX_CHUNKS && i * CHUNK < text.length; i++) parts[`s${i}`] = text.slice(i * CHUNK, (i + 1) * CHUNK);
+  for (let i = 0; i < max && i * CHUNK < text.length; i++) parts[`${prefix}${i}`] = text.slice(i * CHUNK, (i + 1) * CHUNK);
   return parts;
 }
 
-function unpackSummary(meta: Stripe.Metadata): string {
+function unpack(meta: Stripe.Metadata, prefix: string, max: number): string {
   let text = "";
-  for (let i = 0; i < MAX_CHUNKS && meta[`s${i}`] !== undefined; i++) text += meta[`s${i}`];
+  for (let i = 0; i < max && meta[`${prefix}${i}`] !== undefined; i++) text += meta[`${prefix}${i}`];
   return text;
 }
 
@@ -39,6 +40,7 @@ export async function createCheckout(opts: {
   summary: string;
   origin: string;
   cancelPath: string;
+  holdRequest?: HoldRequest | null;
 }): Promise<string> {
   const stripe = getStripe()!;
   const { orderId, order, total } = opts;
@@ -61,7 +63,12 @@ export async function createCheckout(opts: {
     ],
     customer_email: order.contact.email,
     client_reference_id: orderId,
-    metadata: { orderId, service: order.booking.service, ...packSummary(opts.summary) },
+    metadata: {
+      orderId,
+      service: order.booking.service,
+      ...pack("s", opts.summary, MAX_CHUNKS),
+      ...(opts.holdRequest ? pack("h", JSON.stringify(opts.holdRequest), 5) : {}),
+    },
     payment_intent_data: { description: `${site.name} order ${orderId}`, metadata: { orderId } },
     success_url: `${opts.origin}/order/success?id=${encodeURIComponent(orderId)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${opts.origin}${opts.cancelPath}`,
@@ -70,14 +77,32 @@ export async function createCheckout(opts: {
   return session.url;
 }
 
-// Sends the order emails once per paid session (marks the session as notified afterwards).
+// Once per paid session: creates the flight hold (if any), sends the order emails, then marks the
+// session as notified and stores the booking reference on it.
 export async function notifyPaid(session: Stripe.Checkout.Session) {
   if (session.payment_status !== "paid" || session.metadata?.notified === "1") return;
   const meta = session.metadata ?? {};
   const orderId = meta.orderId || session.client_reference_id || session.id;
   const email = session.customer_details?.email || session.customer_email;
   const paid = formatPrice((session.amount_total ?? 0) / 100);
-  const summary = `PAYMENT RECEIVED: ${paid} ${site.currency} (Stripe ${session.payment_intent ?? session.id})\n\n${unpackSummary(meta)}`;
+
+  let holdText = "";
+  const extra: Record<string, string> = {};
+  const holdJson = unpack(meta, "h", 5);
+  if (holdJson) {
+    try {
+      const result = await placeHold(JSON.parse(holdJson) as HoldRequest);
+      holdText = holdSummary(result);
+      extra.pnr = result.bookingReference;
+      if (result.paymentRequiredBy) extra.holdUntil = result.paymentRequiredBy;
+    } catch (e) {
+      console.error("Flight hold failed", e);
+      holdText = holdSummary(null, e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  const summary = `PAYMENT RECEIVED: ${paid} ${site.currency} (Stripe ${session.payment_intent ?? session.id})\n\n${holdText}${unpack(meta, "s", MAX_CHUNKS)}`;
   if (email) await sendOrderEmails(orderId, summary, email, meta.service || "visa");
-  await getStripe()!.checkout.sessions.update(session.id, { metadata: { notified: "1" } });
+  await getStripe()!.checkout.sessions.update(session.id, { metadata: { notified: "1", ...extra } });
+  return extra;
 }

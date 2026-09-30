@@ -24,6 +24,13 @@ Airport city names come from the [OpenFlights](https://openflights.org/data) air
 The sandbox key returns test data; the production key returns live data (flights in production must be
 enabled by LiteAPI on request). Without a key the site shows a "not configured" message instead of results. It never shows fake data.
 
+## Flight hold bookings (Duffel)
+Set `DUFFEL_ACCESS_TOKEN` (`duffel_test_...` first; test mode is free). Flight search then shows only
+flights the airline allows to be held, the order form asks for date of birth and gender, and each order
+creates a Duffel **hold order**: a real airline booking with a booking reference (PNR), not paid, that
+expires at the airline's deadline. The PNR is shown on the success page and in the emails. With Stripe
+on, the hold is created only after payment.
+
 ## Payments (Stripe)
 1. Add `STRIPE_SECRET_KEY` (`sk_test_...` for testing, `sk_live_...` for real payments).
 2. In Stripe → Developers → Webhooks, add the endpoint `https://YOUR-SITE/api/stripe-webhook` with the events

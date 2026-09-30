@@ -18,22 +18,43 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
   const expected = booking.service === "hotel" ? booking.hotels!.length : 1;
   const rawSelections = Array.isArray(body.selections) ? body.selections : [];
   if (rawSelections.length !== expected) return { error: "Please select your flight or hotel first." };
-  const selections: Selection[] = rawSelections.map((s: Record<string, unknown>) => ({
-    ref: clean(s?.ref, 120),
-    summary: Array.isArray(s?.summary) ? s.summary.slice(0, 20).map((l: unknown) => clean(l, 200)) : [],
-  }));
+  const selections: Selection[] = rawSelections.map((s: Record<string, unknown>) => {
+    const h = s?.hold as Record<string, unknown> | undefined;
+    const offerId = clean(h?.offerId, 80);
+    const passengerIds = Array.isArray(h?.passengerIds) ? h.passengerIds.slice(0, 9).map((p) => clean(p, 80)) : [];
+    return {
+      ref: clean(s?.ref, 120),
+      summary: Array.isArray(s?.summary) ? s.summary.slice(0, 20).map((l: unknown) => clean(l, 200)) : [],
+      ...(/^off_[A-Za-z0-9]+$/.test(offerId) && passengerIds.length && passengerIds.every((p) => /^pas_[A-Za-z0-9]+$/.test(p))
+        ? { hold: { offerId, passengerIds } }
+        : {}),
+    };
+  });
   if (selections.some((s) => !s.ref)) return { error: "Please select your flight or hotel first." };
 
   const rawTravelers = Array.isArray(body.travelers) ? body.travelers : [];
   if (rawTravelers.length !== booking.travelers) return { error: "Please enter details for every traveler." };
-  const travelers: Traveler[] = rawTravelers.map((t: Record<string, unknown>) => ({
-    title: clean(t?.title, 10),
-    firstName: clean(t?.firstName),
-    lastName: clean(t?.lastName),
-    nationality: clean(t?.nationality, 60),
-  }));
+  const travelers: Traveler[] = rawTravelers.map((t: Record<string, unknown>) => {
+    const bornOn = clean(t?.bornOn, 10);
+    const gender = t?.gender === "m" || t?.gender === "f" ? t.gender : undefined;
+    return {
+      title: clean(t?.title, 10),
+      firstName: clean(t?.firstName),
+      lastName: clean(t?.lastName),
+      nationality: clean(t?.nationality, 60),
+      ...(/^\d{4}-\d{2}-\d{2}$/.test(bornOn) ? { bornOn } : {}),
+      ...(gender ? { gender } : {}),
+    };
+  });
   if (travelers.some((t) => !t.firstName || !t.lastName || !t.nationality)) {
     return { error: "Please fill in the name and nationality for every traveler." };
+  }
+  const hold = selections.find((s) => s.hold)?.hold;
+  if (hold) {
+    if (hold.passengerIds.length !== travelers.length) return { error: "Please search again and reselect your flight." };
+    if (travelers.some((t) => !t.bornOn || !t.gender)) {
+      return { error: "Please enter the date of birth and gender for every traveler." };
+    }
   }
 
   const c = (body.contact || {}) as Record<string, unknown>;

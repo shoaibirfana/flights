@@ -148,7 +148,10 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                 onClick={() =>
                   onSelect([
                     {
-                      ref: `LiteAPI flight offer ${o.id}`,
+                      ref: o.provider === "duffel" ? `Duffel offer ${o.id}` : `LiteAPI flight offer ${o.id}`,
+                      ...(o.provider === "duffel" && o.passengerIds
+                        ? { hold: { offerId: o.id, passengerIds: o.passengerIds } }
+                        : {}),
                       summary: [
                         `${o.airline}: ${o.slices.map((s) => s.segments.map((g) => g.flightNumber).join("+")).join(" / ")}`,
                         ...o.slices.map(

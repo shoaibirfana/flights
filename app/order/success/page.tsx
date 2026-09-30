@@ -1,25 +1,30 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BookingReference, { StoredBookingReference } from "@/components/BookingReference";
 import { getStripe, notifyPaid, webhookConfigured } from "@/lib/payments";
 
 export const metadata: Metadata = { title: "Order Received" };
 export const dynamic = "force-dynamic";
 
 type PaymentState = "none" | "paid" | "unpaid";
+type Checked = { state: PaymentState; pnr?: string; holdUntil?: string };
 
-async function checkPayment(sessionId: string | undefined, orderId: string): Promise<PaymentState> {
+async function checkPayment(sessionId: string | undefined, orderId: string): Promise<Checked> {
   const stripe = getStripe();
-  if (!sessionId || !stripe) return "none";
+  if (!sessionId || !stripe) return { state: "none" };
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    if (session.client_reference_id !== orderId) return "unpaid";
-    if (session.payment_status !== "paid") return "unpaid";
-    // Without a webhook, the success page sends the order emails (once per session).
-    if (!webhookConfigured()) await notifyPaid(session).catch((e) => console.error("Order notification failed", e));
-    return "paid";
+    if (session.client_reference_id !== orderId) return { state: "unpaid" };
+    if (session.payment_status !== "paid") return { state: "unpaid" };
+    // Without a webhook, the success page creates the hold and sends the emails (once per session).
+    let extra: Record<string, string> | undefined;
+    if (!webhookConfigured()) extra = await notifyPaid(session).catch((e) => (console.error("Order notification failed", e), undefined));
+    const pnr = extra?.pnr ?? session.metadata?.pnr;
+    const holdUntil = extra?.holdUntil ?? session.metadata?.holdUntil;
+    return { state: "paid", pnr, holdUntil };
   } catch (e) {
     console.error("Could not verify Stripe session", e);
-    return "unpaid";
+    return { state: "unpaid" };
   }
 }
 
@@ -30,7 +35,7 @@ export default async function SuccessPage({
 }) {
   const { id, session_id } = await searchParams;
   const orderId = (id ?? "").replace(/[^A-Z0-9-]/gi, "").slice(0, 30);
-  const payment = await checkPayment(session_id, orderId);
+  const { state: payment, pnr, holdUntil } = await checkPayment(session_id, orderId);
 
   if (payment === "unpaid") {
     return (
@@ -56,6 +61,11 @@ export default async function SuccessPage({
         <p className="mt-3 text-gray-700">
           Your order ID is <strong className="text-brand-600">{orderId}</strong>
         </p>
+      )}
+      {pnr ? (
+        <BookingReference pnr={pnr} holdUntil={holdUntil} />
+      ) : (
+        payment === "none" && <StoredBookingReference orderId={orderId} />
       )}
       <p className="mt-4 leading-relaxed text-gray-600">
         We&apos;ve emailed you a confirmation. Our team will contact you shortly to confirm your reservation and send your

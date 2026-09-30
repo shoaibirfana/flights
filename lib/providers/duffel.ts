@@ -1,0 +1,174 @@
+// Duffel (https://duffel.com/docs/api): flight search limited to offers that can be held, and hold
+// orders — a real airline booking with a booking reference (PNR), paid later or left to expire.
+// Test tokens (duffel_test_) use Duffel's test airline and never charge anything.
+import type { BookingRequest, Traveler } from "../booking";
+import { transitCodes } from "../countries";
+import type { FlightOffer, FlightSegment } from "./liteapi-flights";
+import { ProviderError } from "./liteapi";
+
+const API = process.env.DUFFEL_API_URL || "https://api.duffel.com";
+
+export const duffelEnabled = () => Boolean(process.env.DUFFEL_ACCESS_TOKEN?.trim());
+
+async function duffel<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+  if (!token) throw new ProviderError("Flight booking is not configured (missing DUFFEL_ACCESS_TOKEN).", 503);
+  const res = await fetch(`${API}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Duffel-Version": "v2",
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+    cache: "no-store",
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error(`Duffel ${path} error`, res.status, JSON.stringify(json?.errors ?? json).slice(0, 1000));
+    throw new ProviderError(json?.errors?.[0]?.message || `Flight provider error (${res.status})`, res.status >= 500 ? 502 : 400);
+  }
+  return json as T;
+}
+
+type DAirport = { iata_code: string; name: string; iata_country_code?: string };
+type DSegment = {
+  departing_at: string;
+  arriving_at: string;
+  duration: string | null;
+  origin: DAirport;
+  destination: DAirport;
+  marketing_carrier: { name: string; iata_code: string };
+  marketing_carrier_flight_number: string;
+  operating_carrier: { name: string };
+};
+type DOffer = {
+  id: string;
+  total_amount: string;
+  total_currency: string;
+  expires_at: string;
+  owner: { name: string; iata_code: string; logo_symbol_url: string | null };
+  passengers: { id: string }[];
+  payment_requirements?: { requires_instant_payment?: boolean; payment_required_by?: string | null };
+  slices: { duration: string | null; segments: DSegment[] }[];
+};
+
+// ISO 8601 duration (PT13H25M / P1DT2H) → "13h 25m"
+function formatDuration(d: string | null): string {
+  const m = d?.match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!m) return "";
+  const h = Number(m[1] || 0) * 24 + Number(m[2] || 0);
+  return `${h}h ${Number(m[3] || 0)}m`;
+}
+
+function mapSegment(s: DSegment): FlightSegment {
+  return {
+    from: s.origin.iata_code,
+    fromName: s.origin.name,
+    to: s.destination.iata_code,
+    toName: s.destination.name,
+    departAt: s.departing_at,
+    arriveAt: s.arriving_at,
+    flightNumber: `${s.marketing_carrier.iata_code}${s.marketing_carrier_flight_number}`,
+    carrier: s.marketing_carrier.name,
+    operatedBy: s.operating_carrier.name,
+  };
+}
+
+export async function searchHoldableFlights(b: BookingRequest): Promise<FlightOffer[]> {
+  const legs = b.legs!;
+  const slices = legs.map((l) => ({ origin: l.fromCode, destination: l.toCode, departure_date: l.date }));
+  if (b.tripType === "roundtrip") {
+    slices.push({ origin: legs[0].toCode, destination: legs[0].fromCode, departure_date: b.returnDate! });
+  }
+  const { data } = await duffel<{ data: { offers: DOffer[] } }>(
+    "/air/offer_requests?return_offers=true&supplier_timeout=20000",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        data: {
+          slices,
+          passengers: Array.from({ length: b.travelers }, () => ({ type: "adult" })),
+          cabin_class: b.cabin === "business" ? "business" : "economy",
+          max_connections: 2,
+        },
+      }),
+    },
+  );
+
+  const avoid = transitCodes(b.excludeTransit ?? []);
+  return data.offers
+    // Only offers the airline lets us hold without paying now
+    .filter((o) => o.payment_requirements?.requires_instant_payment === false)
+    .filter((o) =>
+      o.slices.every((s) => s.segments.slice(0, -1).every((g) => !avoid.has(g.destination.iata_country_code ?? ""))),
+    )
+    .map((o): FlightOffer => {
+      const mapped = o.slices.map((s) => s.segments.map(mapSegment));
+      return {
+        id: o.id,
+        airline: o.owner.name,
+        airlineCode: o.owner.iata_code,
+        logo: o.owner.logo_symbol_url,
+        price: Number(o.total_amount),
+        currency: o.total_currency,
+        expiresAt: o.expires_at,
+        maxStops: Math.max(...mapped.map((segs) => segs.length - 1)),
+        provider: "duffel",
+        passengerIds: o.passengers.map((p) => p.id),
+        slices: o.slices.map((s, i) => ({
+          from: mapped[i][0].from,
+          to: mapped[i][mapped[i].length - 1].to,
+          duration: formatDuration(s.duration),
+          stops: mapped[i].slice(0, -1).map((g) => g.to),
+          segments: mapped[i],
+        })),
+      };
+    })
+    .sort((a, z) => a.maxStops - z.maxStops || a.price - z.price)
+    .slice(0, 100);
+}
+
+export type HoldTraveler = Traveler & { bornOn: string; gender: "m" | "f" };
+
+export type HoldResult = { orderId: string; bookingReference: string; paymentRequiredBy: string | null };
+
+const TITLES: Record<string, string> = { Mr: "mr", Mrs: "mrs", Ms: "ms", Miss: "miss", Master: "mr" };
+
+// Reserves the selected offer as a hold order (no payment to the airline now).
+export async function createHoldOrder(opts: {
+  offerId: string;
+  passengerIds: string[];
+  travelers: HoldTraveler[];
+  email: string;
+  phone: string;
+}): Promise<HoldResult> {
+  const phone = "+" + opts.phone.replace(/\D/g, "");
+  const { data } = await duffel<{
+    data: { id: string; booking_reference: string; payment_status?: { payment_required_by?: string | null } };
+  }>("/air/orders", {
+    method: "POST",
+    body: JSON.stringify({
+      data: {
+        type: "hold",
+        selected_offers: [opts.offerId],
+        passengers: opts.travelers.map((t, i) => ({
+          id: opts.passengerIds[i],
+          title: TITLES[t.title] ?? "mr",
+          gender: t.gender,
+          given_name: t.firstName,
+          family_name: t.lastName,
+          born_on: t.bornOn,
+          email: opts.email,
+          phone_number: phone,
+        })),
+      },
+    }),
+  });
+  return {
+    orderId: data.id,
+    bookingReference: data.booking_reference,
+    paymentRequiredBy: data.payment_status?.payment_required_by ?? null,
+  };
+}

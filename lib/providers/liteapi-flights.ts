@@ -51,6 +51,9 @@ export type FlightOffer = {
   slices: FlightSlice[];
   // Most stops on any one leg of the trip (0 = all direct)
   maxStops: number;
+  // Set for Duffel offers, which can be reserved as a hold order (real airline booking, pay later)
+  provider?: "liteapi" | "duffel";
+  passengerIds?: string[];
 };
 
 // Times are airport-local, so a trip's length = flying time of each segment + layovers

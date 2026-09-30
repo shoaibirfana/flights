@@ -1,0 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+export const BOOKING_REF_KEY = "booking-reference";
+
+function formatDeadline(iso?: string | null) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+}
+
+// The airline booking reference (PNR) of the flight hold order.
+export default function BookingReference({ pnr, holdUntil }: { pnr: string; holdUntil?: string | null }) {
+  const deadline = formatDeadline(holdUntil);
+  return (
+    <div className="mt-6 rounded-2xl border border-gray-200 bg-cream/40 p-5 text-left">
+      <div className="text-xs font-medium tracking-wide text-gray-500 uppercase">Airline booking reference (PNR)</div>
+      <div className="mt-1 font-mono text-3xl font-semibold tracking-widest text-navy-900">{pnr}</div>
+      <p className="mt-2 text-sm text-gray-600">
+        Your flight is reserved on hold{deadline ? ` until ${deadline}` : ""}. You can check it on the airline&apos;s
+        website under &quot;Manage booking&quot; with this reference and your last name.
+      </p>
+    </div>
+  );
+}
+
+// Shows the reference returned by the order API (orders without an online payment step).
+export function StoredBookingReference({ orderId }: { orderId: string }) {
+  const [ref, setRef] = useState<{ pnr: string; holdUntil: string | null } | null>(null);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(BOOKING_REF_KEY) || "null");
+      if (saved?.orderId === orderId && saved.pnr) setRef(saved);
+    } catch {
+      // Storage unavailable: the reference is still in the confirmation email.
+    }
+  }, [orderId]);
+  return ref ? <BookingReference pnr={ref.pnr} holdUntil={ref.holdUntil} /> : null;
+}
