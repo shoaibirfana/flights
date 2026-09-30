@@ -56,11 +56,11 @@ export default function OrderForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
       if (data.checkoutUrl) {
-        // Stripe's payment page; the selection stays saved in case the customer comes back to retry.
+        // Stripe's payment page; the selection stays saved for a retry and for the trip summary.
         window.location.assign(data.checkoutUrl);
         return;
       }
-      sessionStorage.removeItem(SELECTION_KEY);
+      // The selection stays saved so the success page can link to the trip summary.
       if (data.pnr) {
         sessionStorage.setItem(
           BOOKING_REF_KEY,
@@ -104,6 +104,12 @@ export default function OrderForm({
             </ul>
           ))}
         </div>
+        <Link
+          href={`/order/summary?b=${encodeURIComponent(encoded)}`}
+          className="mt-4 inline-block text-sm font-medium text-brand-600 hover:underline"
+        >
+          Just want to remember your dates? View a free trip summary →
+        </Link>
       </div>
       {travelers.map((t, i) => (
         <div key={i} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
