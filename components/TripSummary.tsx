@@ -68,14 +68,12 @@ const Arrow = () => (
 
 type DFFlight = OrderDetails["slices"][number]["flights"][number];
 
-/* ---------- One flight card — flexbox only, safe for print ---------- */
 function FlightCard({ f, status }: { f: DFFlight; status: string }) {
   const airlineLabel = `${f.airline.toUpperCase()} (${f.airlineCode})`;
   const flightNumOnly = f.flightNumber.replace(f.airlineCode, "").replace(/^0+/, "") || f.flightNumber;
 
   return (
     <div className="itinerary-card">
-      {/* Header */}
       <div className="itinerary-card-head">
         <FlightIcon />
         <span style={{ fontSize: 15, fontWeight: 700 }}>
@@ -83,9 +81,8 @@ function FlightCard({ f, status }: { f: DFFlight; status: string }) {
         </span>
       </div>
 
-      {/* Body: 3 columns via flex */}
       <div className="itinerary-card-body">
-        {/* Left: airline info */}
+        {/* Left column */}
         <div className="itinerary-col-left">
           <AirlineLogo src={f.logoSymbol} />
           <div style={{ marginTop: 12, fontSize: 14, fontWeight: 700, textAlign: "center" }}>
@@ -104,7 +101,7 @@ function FlightCard({ f, status }: { f: DFFlight; status: string }) {
           </div>
         </div>
 
-        {/* Middle: depart / arrive */}
+        {/* Middle column */}
         <div className="itinerary-col-mid">
           <div className="itinerary-legs">
             <div className="itinerary-leg">
@@ -138,7 +135,7 @@ function FlightCard({ f, status }: { f: DFFlight; status: string }) {
           </div>
         </div>
 
-        {/* Right: gray details panel */}
+        {/* Right column — gray panel */}
         <div className="itinerary-col-right">
           <div>Class Of Service:</div>
           <div className="itinerary-dim">{f.cabinClass ?? "Economy"}</div>
@@ -158,7 +155,6 @@ function FlightCard({ f, status }: { f: DFFlight; status: string }) {
   );
 }
 
-/* ---------- Main component ---------- */
 export default function TripSummary({
   booking,
   encoded,
@@ -200,7 +196,6 @@ export default function TripSummary({
 
     return (
       <>
-        {/* -------- Local CSS: two "worlds", screen & print -------- */}
         <style>{`
           .itinerary-wrap {
             background: #f3f3f3;
@@ -260,7 +255,7 @@ export default function TripSummary({
             line-height: 20px;
           }
 
-          /* FLIGHT CARD (flex, no absolute positioning) */
+          /* FLIGHT CARD — fixed-width columns, no flex grow/shrink */
           .itinerary-card {
             border: 1px solid ${BORDER};
             width: 818px;
@@ -279,25 +274,34 @@ export default function TripSummary({
           .itinerary-card-body {
             display: flex;
             align-items: stretch;
+            flex-wrap: nowrap;
           }
           .itinerary-col-left {
             width: 220px;
+            flex: 0 0 220px;
             border-right: 1px solid ${BORDER};
             padding: 14px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            box-sizing: border-box;
           }
           .itinerary-col-mid {
-            flex: 1;
+            width: 418px;
+            flex: 0 0 418px;
             padding: 14px 16px;
+            box-sizing: border-box;
           }
           .itinerary-col-right {
             width: 180px;
-            background: ${GREY_PANEL};
+            flex: 0 0 180px;
+            background: ${GREY_PANEL} !important;
             padding: 14px 12px;
             font-size: 13px;
             line-height: 17px;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           .itinerary-dim { color: #444; }
 
@@ -380,13 +384,26 @@ export default function TripSummary({
             .itinerary-traveler,
             .itinerary-partners {
               width: 100% !important;
+              page-break-inside: avoid;
+              break-inside: avoid;
             }
-            .itinerary-card { page-break-inside: avoid; }
+
+            /* Force fixed columns under print too */
+            .itinerary-card-body {
+              display: flex !important;
+              flex-wrap: nowrap !important;
+            }
+            .itinerary-col-left,
+            .itinerary-col-mid,
+            .itinerary-col-right {
+              flex-shrink: 0 !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
           }
         `}</style>
 
         <div className="itinerary-wrap">
-          {/* Toolbar (hidden on print) */}
           <div className="itinerary-toolbar print:hidden">
             <Link
               href={`/order?b=${encodeURIComponent(encoded)}`}
@@ -408,16 +425,13 @@ export default function TripSummary({
             </button>
           </div>
 
-          {/* The A4-ish page */}
           <div className="itinerary-page">
-            {/* Title */}
             <div className="itinerary-title">
               {order.tripDate ?? ""} <small>Trip to</small>
               <br />
               {destination}
             </div>
 
-            {/* Traveler box */}
             <div className="itinerary-traveler">
               <div className="itinerary-traveler-head">TRAVELER(S)</div>
               <div className="itinerary-traveler-body">
@@ -442,7 +456,6 @@ export default function TripSummary({
               </div>
             </div>
 
-            {/* Flight cards */}
             {order.slices.flatMap((slice, si) =>
               slice.flights.map((f, fi) => (
                 <FlightCard key={`${si}-${fi}`} f={f} status={order.status} />
@@ -452,7 +465,6 @@ export default function TripSummary({
             <PartnerStrip />
           </div>
 
-          {/* Upsell (hidden on print) */}
           <div
             className="itinerary-upsell print:hidden"
             style={{
