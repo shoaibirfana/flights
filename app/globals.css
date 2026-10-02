@@ -85,25 +85,10 @@ body {
   }
 }
 @media print {
-  @page {
-    size: A4;
-    margin: 10mm;
-  }
-  html, body {
-    background: #fff !important;
-  }
-  .print\:hidden {
-    display: none !important;
-  }
-  body {
-    font-size: 10.5pt;
-    color: #111;
-  }
-  /* Keep each flight card from breaking across pages */
-  section {
-    break-inside: avoid;
-  }
-  article {
-    break-inside: auto;
-  }
+  @page { size: A4; margin: 10mm; }
+  html, body { background: #fff !important; }
+  .print\:hidden { display: none !important; }
+  body { font-size: 10.5pt; color: #111; }
+  section { break-inside: avoid; }
+  article { break-inside: auto; }
 }
