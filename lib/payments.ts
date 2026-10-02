@@ -94,6 +94,7 @@ export async function notifyPaid(session: Stripe.Checkout.Session) {
       const result = await placeHold(JSON.parse(holdJson) as HoldRequest);
       holdText = holdSummary(result);
       extra.pnr = result.bookingReference;
+      extra.duffelOrderId = result.orderId;
       if (result.paymentRequiredBy) extra.holdUntil = result.paymentRequiredBy;
     } catch (e) {
       console.error("Flight hold failed", e);
