@@ -85,10 +85,24 @@ body {
   }
 }
 @media print {
-  @page { size: A4; margin: 10mm; }
-  html, body { background: #fff !important; }
-  .print\:hidden { display: none !important; }
-  body { font-size: 10.5pt; color: #111; }
-  section { break-inside: avoid; }
-  article { break-inside: auto; }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html, body {
+    background: #fff !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  /* Hide the gray page backdrop and toolbar */
+  body > div > div:first-child {
+    display: none !important;
+  }
+  /* Scale the 920px canvas to fit A4 (≈794px printable width at 96dpi) */
+  body > div > div:last-child {
+    transform: scale(0.86);
+    transform-origin: top left;
+    padding: 0 !important;
+  }
 }
