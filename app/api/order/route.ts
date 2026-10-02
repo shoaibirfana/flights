@@ -62,5 +62,5 @@ export async function POST(req: Request) {
     console.error("Order email failed", e, summary);
     return NextResponse.json({ error: "We couldn't submit your order right now. Please try again." }, { status: 500 });
   }
-  return NextResponse.json({ orderId, total, pnr, holdUntil });
+    return NextResponse.json({ orderId, total, pnr, holdUntil, duffelOrderId });
 }
