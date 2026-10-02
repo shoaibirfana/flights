@@ -17,9 +17,6 @@ type OrderDetails = Awaited<ReturnType<typeof getOrderDetails>>;
 
 const fmtDateTime = (iso: string) => iso.replace("T", " ").slice(0, 16);
 
-// Show the hold disclaimer; flip to false once Duffel is switched to live tokens.
-const SHOW_HOLD_DISCLAIMER = true;
-
 /* ---------- Shared footer (partners) ---------- */
 function PartnerStrip() {
   return (
@@ -49,9 +46,9 @@ function FlightCard({
   f: OrderDetails["slices"][number]["flights"][number];
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 p-4">
+    <div className="border border-gray-300 p-4">
       {/* Header: airline logo + name + flight no + date */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-2">
         <div className="flex items-center gap-2">
           {f.logoSymbol ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -87,7 +84,7 @@ function FlightCard({
       </div>
 
       {/* Fact row — single row, no duplicates */}
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-gray-100 pt-3 text-xs text-gray-700 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-gray-200 pt-3 text-xs text-gray-700 sm:grid-cols-4">
         <div>
           <span className="text-gray-500">Flight number: </span>
           <span className="font-medium">{f.flightNumber}</span>
@@ -194,8 +191,8 @@ export default function TripSummary({
             </button>
           </div>
 
-          <article className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 md:p-10 print:rounded-none print:p-0 print:shadow-none print:ring-0">
-            <header className="flex items-center justify-between gap-4 border-b border-gray-200 pb-5">
+          <article className="border border-gray-200 bg-white p-6 md:p-10 print:border-0 print:p-0">
+            <header className="flex items-center justify-between gap-4 border-b border-gray-300 pb-5">
               <div className="flex items-center gap-3">
                 <LogoMark className="h-8 w-auto" />
                 <span className="font-semibold uppercase tracking-wide">{site.name}</span>
@@ -209,7 +206,7 @@ export default function TripSummary({
             </h1>
 
             {/* Traveler / booking table */}
-            <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+            <div className="mt-4 overflow-hidden border border-gray-300">
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                   <tr>
@@ -221,7 +218,7 @@ export default function TripSummary({
                 </thead>
                 <tbody className="text-gray-800">
                   {order.passengers.map((p) => (
-                    <tr key={p} className="border-t border-gray-100">
+                    <tr key={p} className="border-t border-gray-200">
                       <td className="px-4 py-3 font-semibold">{p}</td>
                       <td className="px-4 py-3 font-mono">{order.airlineBookingReference}</td>
                       <td className="px-4 py-3 text-gray-500">Not issued (on hold)</td>
@@ -253,66 +250,11 @@ export default function TripSummary({
               </div>
             </section>
 
-            {/* Baggage Allowance */}
-            <section className="mt-8">
-              <h2 className="text-lg font-bold text-navy-900">Baggage Allowance</h2>
-              <p className="mt-2 text-sm text-gray-700">
-                Please check the baggage information at the bottom for more details.
-              </p>
-              <div className="mt-3 text-sm text-gray-800">
-                <p className="font-semibold">Adults</p>
-                <p className="mt-1">
-                  <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for
-                  detailed baggage policies
-                </p>
-                <p className="mt-1">
-                  <span className="font-semibold">Checked baggage:</span> Please contact the airline for
-                  detailed baggage policies
-                </p>
-              </div>
-            </section>
-
-            {/* Important information */}
-            <section className="mt-8">
-              <h2 className="text-lg font-bold text-navy-900">Important information</h2>
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-gray-700">
-                <li>
-                  Passengers should arrive at the airport at least 2 hours before departure to ensure they have
-                  enough time to check in.
-                </li>
-                <li>
-                  During various procedures in the airport, passengers must provide the valid ID used to purchase
-                  their ticket. Their boarding pass or itinerary may also be required.
-                </li>
-                <li>
-                  Please note that tickets must be used in the sequence set out in the itinerary, otherwise
-                  airlines reserve the right to refuse carriage. {site.name} bears no responsibility if
-                  passengers are unable to board a plane due to not complying with airline policies and
-                  regulations.
-                </li>
-                <li>
-                  We make the suggestion to arrive at the airport at least 3h prior to departure to ensure you
-                  have enough time to check in.
-                </li>
-              </ul>
-            </section>
-
-            {SHOW_HOLD_DISCLAIMER && (
-              <p className="mt-6 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                This reservation is held with the airline for a limited time. An e-ticket is issued after
-                payment.
-              </p>
-            )}
-
-            <p className="mt-6 border-t border-gray-100 pt-4 text-xs text-gray-500">
-              Flight times and availability can change. Check with the airline before you travel.
-            </p>
-
             <PartnerStrip />
           </article>
 
           {/* Upsell (hidden on print) */}
-          <div className="mt-6 rounded-2xl bg-navy-900 p-6 text-white md:flex md:items-center md:justify-between md:gap-6 print:hidden">
+          <div className="mt-6 border border-navy-900 bg-navy-900 p-6 text-white md:flex md:items-center md:justify-between md:gap-6 print:hidden">
             <div>
               <h2 className="text-lg font-semibold">Need a paid reservation?</h2>
               <p className="mt-1 text-sm text-gray-300">
@@ -321,7 +263,7 @@ export default function TripSummary({
             </div>
             <Link
               href={`/order?b=${encodeURIComponent(encoded)}`}
-              className="mt-4 inline-flex shrink-0 items-center justify-center rounded-lg bg-white px-6 py-3 font-semibold text-navy-900 hover:bg-brand-50 md:mt-0"
+              className="mt-4 inline-flex shrink-0 items-center justify-center bg-white px-6 py-3 font-semibold text-navy-900 hover:bg-brand-50 md:mt-0"
             >
               Continue · {price}
             </Link>
@@ -367,8 +309,8 @@ export default function TripSummary({
           </button>
         </div>
 
-        <article className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 md:p-10 print:rounded-none print:p-0 print:shadow-none print:ring-0">
-          <header className="flex items-center justify-between gap-4 border-b border-gray-200 pb-5">
+        <article className="border border-gray-200 bg-white p-6 md:p-10 print:border-0 print:p-0">
+          <header className="flex items-center justify-between gap-4 border-b border-gray-300 pb-5">
             <div className="flex items-center gap-3">
               <LogoMark className="h-8 w-auto" />
               <span className="font-semibold uppercase tracking-wide">{site.name}</span>
@@ -384,7 +326,7 @@ export default function TripSummary({
             </p>
             <p className="mt-4 text-sm font-semibold text-navy-900">Booking No. {bookingNo || "—"}</p>
 
-            <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+            <div className="mt-4 overflow-hidden border border-gray-300">
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                   <tr>
@@ -395,7 +337,7 @@ export default function TripSummary({
                   </tr>
                 </thead>
                 <tbody className="text-gray-800">
-                  <tr className="border-t border-gray-100">
+                  <tr className="border-t border-gray-200">
                     <td className="px-4 py-3">—</td>
                     <td className="px-4 py-3 capitalize">{booking.cabin ?? "Economy"}</td>
                     <td className="px-4 py-3 font-mono">XXX</td>
@@ -420,7 +362,7 @@ export default function TripSummary({
                   </ul>
 
                   {s.segments && s.segments.length > 0 && (
-                    <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+                    <div className="mt-4 overflow-hidden border border-gray-300">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                           <tr>
@@ -433,7 +375,7 @@ export default function TripSummary({
                         </thead>
                         <tbody className="text-gray-800">
                           {s.segments.map((seg: FlightSegment, i: number) => (
-                            <tr key={i} className="border-t border-gray-100 align-top">
+                            <tr key={i} className="border-t border-gray-200 align-top">
                               <td className="px-3 py-2 font-mono font-semibold text-navy-900">
                                 {seg.flightNumber}
                               </td>
@@ -456,56 +398,10 @@ export default function TripSummary({
             </div>
           </section>
 
-          <section className="mt-8">
-            <h2 className="text-lg font-bold text-navy-900">Baggage Allowance</h2>
-            <p className="mt-2 text-sm text-gray-700">
-              Please check the baggage information at the bottom for more details.
-            </p>
-            <div className="mt-3 text-sm text-gray-800">
-              <p className="font-semibold">Adults</p>
-              <p className="mt-1">
-                <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for
-                detailed baggage policies
-              </p>
-              <p className="mt-1">
-                <span className="font-semibold">Checked baggage:</span> Please contact the airline for
-                detailed baggage policies
-              </p>
-            </div>
-          </section>
-
-          <section className="mt-8">
-            <h2 className="text-lg font-bold text-navy-900">Important information</h2>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-gray-700">
-              <li>
-                Passengers should arrive at the airport at least 2 hours before departure to ensure they have
-                enough time to check in.
-              </li>
-              <li>
-                During various procedures in the airport, passengers must provide the valid ID used to purchase
-                their ticket. Their boarding pass or itinerary may also be required.
-              </li>
-              <li>
-                Please note that tickets must be used in the sequence set out in the itinerary, otherwise
-                airlines reserve the right to refuse carriage. {site.name} bears no responsibility if
-                passengers are unable to board a plane due to not complying with airline policies and
-                regulations.
-              </li>
-              <li>
-                We make the suggestion to arrive at the airport at least 3h prior to departure to ensure you
-                have enough time to check in.
-              </li>
-            </ul>
-          </section>
-
-          <p className="mt-6 border-t border-gray-100 pt-4 text-xs text-gray-500">
-            Flight times and availability can change. Check with the airline or hotel before you travel.
-          </p>
-
           <PartnerStrip />
         </article>
 
-        <div className="mt-6 rounded-2xl bg-navy-900 p-6 text-white md:flex md:items-center md:justify-between md:gap-6 print:hidden">
+        <div className="mt-6 border border-navy-900 bg-navy-900 p-6 text-white md:flex md:items-center md:justify-between md:gap-6 print:hidden">
           <div>
             <h2 className="text-lg font-semibold">Need it for a visa application?</h2>
             <p className="mt-1 text-sm text-gray-300">
@@ -514,7 +410,7 @@ export default function TripSummary({
           </div>
           <Link
             href={`/order?b=${encodeURIComponent(encoded)}`}
-            className="mt-4 inline-flex shrink-0 items-center justify-center rounded-lg bg-white px-6 py-3 font-semibold text-navy-900 hover:bg-brand-50 md:mt-0"
+            className="mt-4 inline-flex shrink-0 items-center justify-center bg-white px-6 py-3 font-semibold text-navy-900 hover:bg-brand-50 md:mt-0"
           >
             Get reservation · {price}
           </Link>
