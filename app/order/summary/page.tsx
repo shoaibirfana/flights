@@ -2,14 +2,19 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import TripSummary from "@/components/TripSummary";
 import { bookingPrice, decodeBooking } from "@/lib/booking";
+import { getOrderDetails } from "@/lib/providers/duffel";
 import { formatPrice } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Trip Summary", robots: { index: false } };
 
 export const dynamic = "force-dynamic";
 
-export default async function TripSummaryPage({ searchParams }: { searchParams: Promise<{ b?: string }> }) {
-  const { b } = await searchParams;
+export default async function TripSummaryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ b?: string; o?: string }>;
+}) {
+  const { b, o } = await searchParams;
   const booking = decodeBooking(b);
 
   if (!booking) {
@@ -24,5 +29,23 @@ export default async function TripSummaryPage({ searchParams }: { searchParams: 
     );
   }
 
-  return <TripSummary booking={booking} encoded={b!} price={formatPrice(bookingPrice(booking))} />;
+  // Only trust a well-formed Duffel order ID; ignore anything else.
+  const orderId = typeof o === "string" && /^ord_[A-Za-z0-9]+$/.test(o) ? o : null;
+  let order: Awaited<ReturnType<typeof getOrderDetails>> | null = null;
+  if (orderId) {
+    try {
+      order = await getOrderDetails(orderId);
+    } catch (e) {
+      console.error("Duffel getOrderDetails failed", orderId, e);
+    }
+  }
+
+  return (
+    <TripSummary
+      booking={booking}
+      encoded={b!}
+      price={formatPrice(bookingPrice(booking))}
+      order={order}
+    />
+  );
 }

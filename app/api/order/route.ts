@@ -35,15 +35,18 @@ export async function POST(req: Request) {
   }
 
   // No payment step: reserve the flight right away as a hold order (real airline booking reference).
+  // No payment step: reserve the flight right away as a hold order (real airline booking reference).
   let pnr: string | undefined;
   let holdUntil: string | null = null;
+  let duffelOrderId: string | undefined;
   let holdText = "";
   if (holdRequest) {
     try {
-      const result = await placeHold(holdRequest);
-      pnr = result.bookingReference;
-      holdUntil = result.paymentRequiredBy;
-      holdText = holdSummary(result);
+      const hold = await placeHold(holdRequest);
+      pnr = hold.bookingReference;
+      holdUntil = hold.paymentRequiredBy;
+      duffelOrderId = hold.orderId;
+      holdText = holdSummary(hold);
     } catch (e) {
       console.error("Flight hold failed", e);
       const reason = e instanceof Error && e.message ? ` (${e.message})` : "";
@@ -62,5 +65,5 @@ export async function POST(req: Request) {
     console.error("Order email failed", e, summary);
     return NextResponse.json({ error: "We couldn't submit your order right now. Please try again." }, { status: 500 });
   }
-  return NextResponse.json({ orderId, total, pnr, holdUntil });
+    return NextResponse.json({ orderId, total, pnr, holdUntil, duffelOrderId });
 }

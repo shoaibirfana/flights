@@ -61,10 +61,15 @@ export default function OrderForm({
         return;
       }
       // The selection stays saved so the success page can link to the trip summary.
-      if (data.pnr) {
+      if (data.pnr || data.duffelOrderId) {
         sessionStorage.setItem(
           BOOKING_REF_KEY,
-          JSON.stringify({ orderId: data.orderId, pnr: data.pnr, holdUntil: data.holdUntil ?? null }),
+          JSON.stringify({
+            orderId: data.orderId,
+            pnr: data.pnr ?? null,
+            holdUntil: data.holdUntil ?? null,
+            duffelOrderId: data.duffelOrderId ?? null,
+          }),
         );
       }
       window.location.assign(`/order/success?id=${encodeURIComponent(data.orderId)}`);
