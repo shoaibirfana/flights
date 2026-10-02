@@ -14,16 +14,13 @@ import { SELECTION_KEY } from "./SearchResults";
 
 type OrderDetails = Awaited<ReturnType<typeof getOrderDetails>>;
 
-/* ---------- Layout constants ---------- */
 const BORDER = "#d4d4d4";
 const GREY_PANEL = "#cccccc";
 const TEXT = "#222222";
 
-/* ---------- Split a name into 2-3 short lines for the PDF look ---------- */
 const nameLines = (name: string): string[] => {
   const words = (name || "").split(/\s+/).filter(Boolean);
   if (words.length <= 2) return words;
-  // Group into 3 lines max
   const per = Math.ceil(words.length / 3);
   const out: string[] = [];
   for (let i = 0; i < words.length; i += per) out.push(words.slice(i, i + per).join(" "));
@@ -32,216 +29,131 @@ const nameLines = (name: string): string[] => {
 
 const MEALS = ["Drinks and quality", "products offered", "for sale"];
 
-/* ---------- Airline logo (Duffel URL, hidden if missing) ---------- */
 function AirlineLogo({ src }: { src?: string | null }) {
   if (!src) return <div style={{ height: 44 }} />;
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt=""
-      style={{ width: 154, height: 44, objectFit: "contain" }}
-    />
+    <img src={src} alt="" style={{ width: 154, height: 44, objectFit: "contain" }} />
   );
 }
 
-/* ---------- Partner logos strip ---------- */
 function PartnerStrip() {
   return (
-    <div
-      style={{
-        width: 818,
-        marginTop: 24,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
+    <div className="itinerary-partners">
       {Array.from({ length: 11 }, (_, i) => i + 1).map((n) => (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={n}
           src={`/partners/${n}.png`}
           alt=""
-          style={{ height: 32, maxWidth: 66, objectFit: "contain", filter: "grayscale(1)" }}
+          style={{ height: 30, maxWidth: 64, objectFit: "contain", filter: "grayscale(1)" }}
         />
       ))}
     </div>
   );
 }
 
-/* ---------- Flight icon ---------- */
 const FlightIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={TEXT} strokeWidth={1.6}>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={TEXT} strokeWidth={1.6}>
     <circle cx="12" cy="12" r="10" />
     <path d="M6.5 6.5l11 11M8 15l3-1 3 4 1-.5-1.5-4.5 3-1.5a1.3 1.3 0 00-1-2.4l-3 1.4L9 6.8l-1 .4 1.6 4-2.8 1-1.5-1-.8.3 1.2 2.2z" />
   </svg>
 );
 
 const Arrow = () => (
-  <svg width="24" height="14" viewBox="0 0 24 14" fill="none" stroke={TEXT} strokeWidth={1.6}>
+  <svg width="22" height="12" viewBox="0 0 24 14" fill="none" stroke={TEXT} strokeWidth={1.6}>
     <path d="M1 7h21M16 1l6 6-6 6" />
   </svg>
 );
 
-/* ---------- One flight card (pixel-locked layout) ---------- */
 type DFFlight = OrderDetails["slices"][number]["flights"][number];
 
+/* ---------- One flight card — flexbox only, safe for print ---------- */
 function FlightCard({ f, status }: { f: DFFlight; status: string }) {
   const airlineLabel = `${f.airline.toUpperCase()} (${f.airlineCode})`;
   const flightNumOnly = f.flightNumber.replace(f.airlineCode, "").replace(/^0+/, "") || f.flightNumber;
-  const lbl: React.CSSProperties = { fontSize: 16, lineHeight: "18px" };
 
   return (
-    <div style={{ border: `1px solid ${BORDER}`, width: 818 }}>
+    <div className="itinerary-card">
       {/* Header */}
-      <div
-        style={{
-          height: 48,
-          borderBottom: `1px solid ${BORDER}`,
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          paddingLeft: 6,
-        }}
-      >
+      <div className="itinerary-card-head">
         <FlightIcon />
-        <span style={{ fontSize: 17, fontWeight: 700 }}>
+        <span style={{ fontSize: 15, fontWeight: 700 }}>
           FLIGHT - {airlineLabel} {flightNumOnly} - {f.departDate}
         </span>
       </div>
 
-      {/* Body */}
-      <div style={{ display: "flex", height: 295 }}>
-        {/* Left column */}
-        <div style={{ width: 236, borderRight: `1px solid ${BORDER}`, position: "relative" }}>
-          <div style={{ position: "absolute", top: 54, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-            <AirlineLogo src={f.logoSymbol} />
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              top: 163,
-              left: 0,
-              right: 0,
-              textAlign: "center",
-              fontSize: 16,
-              fontWeight: 700,
-            }}
-          >
+      {/* Body: 3 columns via flex */}
+      <div className="itinerary-card-body">
+        {/* Left: airline info */}
+        <div className="itinerary-col-left">
+          <AirlineLogo src={f.logoSymbol} />
+          <div style={{ marginTop: 12, fontSize: 14, fontWeight: 700, textAlign: "center" }}>
             {airlineLabel}
           </div>
-          <div style={{ position: "absolute", top: 201, left: 8, fontSize: 16, lineHeight: "27px" }}>
+          <div style={{ marginTop: 14, fontSize: 13, lineHeight: "20px" }}>
             <div>
-              Flight number:&nbsp; <b>{f.airlineCode} - {flightNumOnly}</b>
+              Flight number: <b>{f.airlineCode} - {flightNumOnly}</b>
             </div>
             <div>
-              Status:&nbsp; <b style={{ fontSize: 17 }}>{status}</b>
+              Status: <b>{status}</b>
             </div>
             <div>
-              Duration:&nbsp; <b style={{ fontSize: 17 }}>{f.duration || "—"}</b>
+              Duration: <b>{f.duration || "—"}</b>
             </div>
           </div>
         </div>
 
-        {/* Middle column */}
-        <div style={{ flex: 1, position: "relative" }}>
-          <div style={{ position: "absolute", top: 52, left: 10, ...lbl }}>Depart</div>
-          <div
-            style={{
-              position: "absolute",
-              top: 74,
-              left: 10,
-              fontSize: 28,
-              fontWeight: 700,
-              lineHeight: "34px",
-            }}
-          >
-            {f.from.code}
-          </div>
+        {/* Middle: depart / arrive */}
+        <div className="itinerary-col-mid">
+          <div className="itinerary-legs">
+            <div className="itinerary-leg">
+              <div className="itinerary-leg-label">Depart</div>
+              <div className="itinerary-leg-code">{f.from.code}</div>
+              <div className="itinerary-leg-name">
+                {nameLines(f.from.name).map((l) => (
+                  <div key={l}>{l}</div>
+                ))}
+              </div>
+              <div className="itinerary-leg-time">{f.departTime}</div>
+              <div className="itinerary-leg-date">{f.departDate}</div>
+            </div>
 
-          <div
-            style={{
-              position: "absolute",
-              top: 58,
-              left: 0,
-              right: 0,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <Arrow />
-            <div style={{ marginTop: 10, fontSize: 16, fontWeight: 700 }}>{f.duration || "—"}</div>
-          </div>
+            <div className="itinerary-leg-arrow">
+              <Arrow />
+              <div style={{ fontSize: 13, fontWeight: 700, marginTop: 4 }}>{f.duration || "—"}</div>
+            </div>
 
-          <div style={{ position: "absolute", top: 52, right: 8, textAlign: "right", ...lbl }}>Arrive</div>
-          <div
-            style={{
-              position: "absolute",
-              top: 74,
-              right: 8,
-              fontSize: 28,
-              fontWeight: 700,
-              lineHeight: "34px",
-            }}
-          >
-            {f.to.code}
+            <div className="itinerary-leg">
+              <div className="itinerary-leg-label">Arrive</div>
+              <div className="itinerary-leg-code">{f.to.code}</div>
+              <div className="itinerary-leg-name">
+                {nameLines(f.to.name).map((l) => (
+                  <div key={l}>{l}</div>
+                ))}
+              </div>
+              <div className="itinerary-leg-time">{f.arriveTime}</div>
+              <div className="itinerary-leg-date">{f.arriveDate}</div>
+            </div>
           </div>
-
-          {/* Divider */}
-          <div style={{ position: "absolute", top: 124, left: 0, right: 0, borderTop: `1px solid ${BORDER}` }} />
-
-          {/* Depart details */}
-          <div style={{ position: "absolute", top: 133, left: 10, ...lbl }}>
-            {nameLines(f.from.name).map((l) => (
-              <div key={l}>{l}</div>
-            ))}
-          </div>
-          <div style={{ position: "absolute", top: 196, left: 10, fontSize: 26, fontWeight: 700 }}>
-            {f.departTime}
-          </div>
-          <div style={{ position: "absolute", top: 228, left: 10, fontSize: 16 }}>{f.departDate}</div>
-
-          {/* Arrive details */}
-          <div style={{ position: "absolute", top: 133, left: 269, ...lbl }}>
-            {nameLines(f.to.name).map((l) => (
-              <div key={l}>{l}</div>
-            ))}
-          </div>
-          <div style={{ position: "absolute", top: 196, left: 269, fontSize: 26, fontWeight: 700 }}>
-            {f.arriveTime}
-          </div>
-          <div style={{ position: "absolute", top: 228, left: 269, fontSize: 16 }}>{f.arriveDate}</div>
         </div>
 
-        {/* Grey details column */}
-        <div
-          style={{
-            width: 183,
-            background: GREY_PANEL,
-            padding: "54px 12px 0",
-            fontSize: 16,
-            lineHeight: "17.5px",
-          }}
-        >
+        {/* Right: gray details panel */}
+        <div className="itinerary-col-right">
           <div>Class Of Service:</div>
-          <div style={{ color: "#444" }}>{f.cabinClass ?? "Economy"}</div>
-          <div style={{ marginTop: 9 }}>Plane:</div>
-          <div style={{ color: "#444", minHeight: 9 }}>{f.aircraft ?? ""}</div>
-          <div>Meals:</div>
-          <div style={{ color: "#444" }}>
+          <div className="itinerary-dim">{f.cabinClass ?? "Economy"}</div>
+          <div style={{ marginTop: 8 }}>Plane:</div>
+          <div className="itinerary-dim">{f.aircraft ?? "—"}</div>
+          <div style={{ marginTop: 8 }}>Meals:</div>
+          <div className="itinerary-dim">
             {MEALS.map((l) => (
               <div key={l}>{l}</div>
             ))}
           </div>
-          <div style={{ marginTop: 9 }}>Seat:</div>
-          <div style={{ color: "#444" }}>Check-in required</div>
+          <div style={{ marginTop: 8 }}>Seat:</div>
+          <div className="itinerary-dim">Check-in required</div>
         </div>
       </div>
-
-      {/* Bottom strip */}
-      <div style={{ height: 38, borderTop: `1px solid ${BORDER}` }} />
     </div>
   );
 }
@@ -281,153 +193,306 @@ export default function TripSummary({
     }
   }, [encoded]);
 
-  /* ---------- Verified path: real Duffel order ---------- */
+  /* ============ Verified path — real Duffel order ============ */
   if (order) {
     const dest = order.destination;
-    const destination = dest
-      ? `${dest.city || dest.name} ${dest.code}`.trim()
-      : "";
+    const destination = dest ? `${dest.city || dest.name} ${dest.code}`.trim() : "";
 
     return (
-      <div style={{ background: "#f3f3f3", minHeight: "100vh", padding: "24px 0", overflowX: "auto" }}>
-        {/* Toolbar (hidden on print) */}
-        <div
-          className="print:hidden"
-          style={{
-            width: 920,
-            margin: "0 auto 16px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Link
-            href={`/order?b=${encodeURIComponent(encoded)}`}
-            style={{ fontSize: 13, color: "#0369a1", textDecoration: "underline" }}
-          >
-            ← Back to booking
-          </Link>
-          <button
-            onClick={() => window.print()}
-            style={{
-              padding: "6px 16px",
-              fontSize: 13,
-              border: `1px solid ${TEXT}`,
-              background: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Print / Save as PDF
-          </button>
-        </div>
+      <>
+        {/* -------- Local CSS: two "worlds", screen & print -------- */}
+        <style>{`
+          .itinerary-wrap {
+            background: #f3f3f3;
+            min-height: 100vh;
+            padding: 24px 0;
+            overflow-x: auto;
+          }
+          .itinerary-toolbar {
+            width: 920px;
+            margin: 0 auto 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .itinerary-page {
+            width: 920px;
+            min-height: 1300px;
+            margin: 0 auto;
+            background: #fff;
+            color: ${TEXT};
+            font-family: Poppins, Arial, sans-serif;
+            padding: 48px 49px 40px 53px;
+            box-sizing: border-box;
+          }
+          .itinerary-title {
+            font-size: 22px;
+            line-height: 25px;
+            margin-bottom: 40px;
+          }
+          .itinerary-title small {
+            font-size: 17px;
+            text-transform: uppercase;
+          }
+          .itinerary-traveler {
+            border: 1px solid ${BORDER};
+            width: 818px;
+            margin-bottom: 24px;
+          }
+          .itinerary-traveler-head {
+            height: 42px;
+            border-bottom: 1px solid ${BORDER};
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 17px;
+            font-weight: 700;
+          }
+          .itinerary-traveler-body {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px 14px;
+            gap: 24px;
+          }
+          .itinerary-traveler-body .right {
+            text-align: right;
+            font-size: 14px;
+            line-height: 20px;
+          }
 
-        {/* Page */}
-        <div
-          style={{
-            width: 920,
-            minHeight: 1300,
-            margin: "0 auto",
-            background: "#fff",
-            color: TEXT,
-            fontFamily: "Poppins, Arial, sans-serif",
-            padding: "48px 49px 40px 53px",
-            boxSizing: "border-box",
-          }}
-        >
-          {/* Title */}
-          <div style={{ fontSize: 22, lineHeight: "25px", marginBottom: 58 }}>
-            {order.tripDate ?? ""}{" "}
-            <span style={{ fontSize: 17, textTransform: "uppercase" }}>Trip to</span>
-            <br />
-            {destination}
-          </div>
+          /* FLIGHT CARD (flex, no absolute positioning) */
+          .itinerary-card {
+            border: 1px solid ${BORDER};
+            width: 818px;
+            margin-bottom: 24px;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          .itinerary-card-head {
+            height: 44px;
+            border-bottom: 1px solid ${BORDER};
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-left: 8px;
+          }
+          .itinerary-card-body {
+            display: flex;
+            align-items: stretch;
+          }
+          .itinerary-col-left {
+            width: 220px;
+            border-right: 1px solid ${BORDER};
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+          .itinerary-col-mid {
+            flex: 1;
+            padding: 14px 16px;
+          }
+          .itinerary-col-right {
+            width: 180px;
+            background: ${GREY_PANEL};
+            padding: 14px 12px;
+            font-size: 13px;
+            line-height: 17px;
+          }
+          .itinerary-dim { color: #444; }
 
-          {/* Traveler box */}
-          <div style={{ border: `1px solid ${BORDER}`, width: 818, marginBottom: 24 }}>
-            <div
+          .itinerary-legs {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+          }
+          .itinerary-leg {
+            flex: 1;
+            min-width: 0;
+          }
+          .itinerary-leg-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 26px;
+            color: ${TEXT};
+          }
+          .itinerary-leg-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 0.05em;
+          }
+          .itinerary-leg-code {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 30px;
+            margin-top: 2px;
+          }
+          .itinerary-leg-name {
+            font-size: 12px;
+            line-height: 15px;
+            margin-top: 6px;
+            color: #333;
+          }
+          .itinerary-leg-time {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 10px;
+          }
+          .itinerary-leg-date {
+            font-size: 13px;
+            color: #555;
+          }
+
+          .itinerary-partners {
+            width: 818px;
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            break-inside: avoid;
+          }
+
+          /* ============== PRINT ============== */
+          @media print {
+            @page { size: A4; margin: 8mm; }
+
+            body { background: #fff !important; }
+
+            .itinerary-wrap {
+              background: #fff !important;
+              padding: 0 !important;
+              overflow: visible !important;
+            }
+            .itinerary-toolbar,
+            .itinerary-upsell,
+            .print\\:hidden { display: none !important; }
+
+            .itinerary-page {
+              width: 100% !important;
+              min-height: 0 !important;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+            .itinerary-card,
+            .itinerary-traveler,
+            .itinerary-partners {
+              width: 100% !important;
+            }
+            .itinerary-card { page-break-inside: avoid; }
+          }
+        `}</style>
+
+        <div className="itinerary-wrap">
+          {/* Toolbar (hidden on print) */}
+          <div className="itinerary-toolbar print:hidden">
+            <Link
+              href={`/order?b=${encodeURIComponent(encoded)}`}
+              style={{ fontSize: 13, color: "#0369a1", textDecoration: "underline" }}
+            >
+              ← Back to booking
+            </Link>
+            <button
+              onClick={() => window.print()}
               style={{
-                height: 42,
-                borderBottom: `1px solid ${BORDER}`,
-                display: "flex",
-                alignItems: "center",
-                paddingLeft: 8,
-                fontSize: 17,
-                fontWeight: 700,
+                padding: "6px 16px",
+                fontSize: 13,
+                border: `1px solid ${TEXT}`,
+                background: "#fff",
+                cursor: "pointer",
               }}
             >
-              TRAVELER(S)
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 8px 10px" }}>
-              <div>
-                <div style={{ fontSize: 16 }}>Passenger(s)</div>
-                {order.passengers.map((p) => (
-                  <div key={p} style={{ marginTop: 16, fontSize: 17, fontWeight: 700 }}>
-                    {p}
-                  </div>
-                ))}
-              </div>
-              <div style={{ textAlign: "right", fontSize: 16, lineHeight: "21px" }}>
-                <div>Reservation Code</div>
-                <div style={{ fontWeight: 700 }}>{order.airlineBookingReference}</div>
-                <div>Airline Reservation Code</div>
-                <div style={{ fontWeight: 700, paddingRight: 4 }}>{order.airlineBookingReference}</div>
-              </div>
-            </div>
+              Print / Save as PDF
+            </button>
           </div>
 
-          {/* Flight cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* The A4-ish page */}
+          <div className="itinerary-page">
+            {/* Title */}
+            <div className="itinerary-title">
+              {order.tripDate ?? ""} <small>Trip to</small>
+              <br />
+              {destination}
+            </div>
+
+            {/* Traveler box */}
+            <div className="itinerary-traveler">
+              <div className="itinerary-traveler-head">TRAVELER(S)</div>
+              <div className="itinerary-traveler-body">
+                <div>
+                  <div style={{ fontSize: 14, color: "#555" }}>Passenger(s)</div>
+                  {order.passengers.map((p) => (
+                    <div key={p} style={{ marginTop: 8, fontSize: 16, fontWeight: 700 }}>
+                      {p}
+                    </div>
+                  ))}
+                </div>
+                <div className="right">
+                  <div>Reservation Code</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>
+                    {order.airlineBookingReference}
+                  </div>
+                  <div style={{ marginTop: 6 }}>Airline Reservation Code</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>
+                    {order.airlineBookingReference}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Flight cards */}
             {order.slices.flatMap((slice, si) =>
               slice.flights.map((f, fi) => (
                 <FlightCard key={`${si}-${fi}`} f={f} status={order.status} />
               )),
             )}
+
+            <PartnerStrip />
           </div>
 
-          {/* Footer logos */}
-          <PartnerStrip />
-        </div>
-
-        {/* Upsell (hidden on print) */}
-        <div
-          className="print:hidden"
-          style={{
-            width: 920,
-            margin: "24px auto 0",
-            background: "#0b1f3a",
-            color: "#fff",
-            padding: 24,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 24,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>Need a paid reservation?</div>
-            <div style={{ marginTop: 4, fontSize: 14, color: "#cbd5e1" }}>
-              Get a ticketed booking with an e-ticket number emailed as a PDF.
-            </div>
-          </div>
-          <Link
-            href={`/order?b=${encodeURIComponent(encoded)}`}
+          {/* Upsell (hidden on print) */}
+          <div
+            className="itinerary-upsell print:hidden"
             style={{
-              display: "inline-block",
-              padding: "12px 24px",
-              background: "#fff",
-              color: "#0b1f3a",
-              fontWeight: 600,
-              textDecoration: "none",
+              width: 920,
+              margin: "24px auto 0",
+              background: "#0b1f3a",
+              color: "#fff",
+              padding: 24,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 24,
             }}
           >
-            Continue · {price}
-          </Link>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 600 }}>Need a paid reservation?</div>
+              <div style={{ marginTop: 4, fontSize: 14, color: "#cbd5e1" }}>
+                Get a ticketed booking with an e-ticket number emailed as a PDF.
+              </div>
+            </div>
+            <Link
+              href={`/order?b=${encodeURIComponent(encoded)}`}
+              style={{
+                display: "inline-block",
+                padding: "12px 24px",
+                background: "#fff",
+                color: "#0b1f3a",
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              Continue · {price}
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
-  /* ---------- Fallback: no Duffel order yet ---------- */
+  /* ============ Fallback — no Duffel order yet ============ */
   if (selections === undefined) return null;
   if (!selections) {
     return (
@@ -475,8 +540,8 @@ export default function TripSummary({
           <section className="mt-6">
             <h1 className="text-lg font-bold text-navy-900">Booking Information</h1>
             <p className="mt-2 text-sm text-gray-700">
-              We advise you print out your itinerary and take it with you to ensure your trip goes as smoothly
-              as possible.
+              We advise you print out your itinerary and take it with you to ensure your trip goes as
+              smoothly as possible.
             </p>
             <p className="mt-4 text-sm font-semibold text-navy-900">Booking No. {bookingNo || "—"}</p>
 
