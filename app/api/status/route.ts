@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAirports } from "@/lib/providers/liteapi-airports";
+import { duffelEnabled, searchDuffelAirports } from "@/lib/providers/duffel";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const key = process.env.LITEAPI_KEY?.trim() ?? "";
   const status: Record<string, unknown> = {
-    liteapiKey: key ? (key.startsWith("sand_") ? "set (sandbox)" : key.startsWith("prod_") ? "set (production)" : "set (unknown type)") : "MISSING",
+    liteapiKey: key ? (key.startsWith("sand_") ? "set (sandbox)" : key.startsWith("prod_") ? "set (production)" : "set (unknown type)") : duffelEnabled() ? "not set (not needed: Duffel is used)" : "MISSING",
     duffel: process.env.DUFFEL_ACCESS_TOKEN?.trim()
       ? `on (${process.env.DUFFEL_ACCESS_TOKEN.trim().startsWith("duffel_live_") ? "live" : "test"} mode): flights are reserved as hold orders`
       : "off (flight orders are booked manually by the team)",
@@ -26,6 +27,14 @@ export async function GET() {
       status.airportsLoaded = airports.length;
     } catch (e) {
       status.liteapiConnection = `FAILED: ${e instanceof Error ? e.message : String(e)}`;
+    }
+  }
+  if (duffelEnabled()) {
+    try {
+      const places = await searchDuffelAirports("London");
+      status.duffelConnection = places.length ? "OK" : "connected, but no airports came back";
+    } catch (e) {
+      status.duffelConnection = `FAILED: ${e instanceof Error ? e.message : String(e)}`;
     }
   }
   return NextResponse.json(status);

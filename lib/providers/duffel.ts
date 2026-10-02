@@ -130,6 +130,48 @@ export async function searchHoldableFlights(b: BookingRequest): Promise<FlightOf
     .slice(0, 100);
 }
 
+type DPlace = {
+  type: "airport" | "city";
+  iata_code: string;
+  name: string;
+  city_name?: string | null;
+  iata_country_code?: string;
+  airports?: { iata_code: string; name: string }[] | null;
+};
+
+const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
+const countryName = (cc?: string) => {
+  try {
+    return cc ? (countryNames.of(cc) ?? cc) : "";
+  } catch {
+    return cc ?? "";
+  }
+};
+
+// Airport autocomplete from Duffel's place suggestions, labelled like the LiteAPI search:
+// "Lahore (LHE) - Allama Iqbal International Airport, Pakistan".
+export async function searchDuffelAirports(query: string): Promise<{ code: string; label: string }[]> {
+  const { data } = await duffel<{ data: DPlace[] }>(`/places/suggestions?query=${encodeURIComponent(query)}`);
+  const seen = new Set<string>();
+  const places: { code: string; label: string }[] = [];
+  const add = (code: string, label: string) => {
+    if (!/^[A-Z]{3}$/.test(code) || seen.has(code)) return;
+    seen.add(code);
+    places.push({ code, label });
+  };
+  for (const p of data) {
+    const country = countryName(p.iata_country_code);
+    const suffix = country ? `, ${country}` : "";
+    if (p.type === "airport") {
+      add(p.iata_code, p.city_name ? `${p.city_name} (${p.iata_code}) - ${p.name}${suffix}` : `${p.name} (${p.iata_code})${suffix}`);
+    } else {
+      // A city lists its airports; show each one so the customer picks the exact airport.
+      for (const a of p.airports ?? []) add(a.iata_code, `${p.name} (${a.iata_code}) - ${a.name}${suffix}`);
+    }
+  }
+  return places.slice(0, 10);
+}
+
 export type HoldTraveler = Traveler & { bornOn: string; gender: "m" | "f" };
 
 export type HoldResult = { orderId: string; bookingReference: string; paymentRequiredBy: string | null };
