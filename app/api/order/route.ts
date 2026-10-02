@@ -46,8 +46,11 @@ export async function POST(req: Request) {
       holdText = holdSummary(result);
     } catch (e) {
       console.error("Flight hold failed", e);
+      const reason = e instanceof Error && e.message ? ` (${e.message})` : "";
       return NextResponse.json(
-        { error: "This flight could not be reserved (it may no longer be available). Please search again and pick another flight." },
+        {
+          error: `This flight could not be reserved${reason}. Please check your details, or search again and pick another flight.`,
+        },
         { status: 409 },
       );
     }

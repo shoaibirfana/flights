@@ -176,6 +176,19 @@ export type HoldTraveler = Traveler & { bornOn: string; gender: "m" | "f" };
 
 export type HoldResult = { orderId: string; bookingReference: string; paymentRequiredBy: string | null };
 
+// Duffel needs E.164 phone numbers (+923001234567). Customers often type the local form
+// (03001234567), so a leading 0 gets the default country code (Pakistan unless DEFAULT_PHONE_COUNTRY_CODE is set).
+export function toE164(raw: string): string {
+  const t = raw.trim();
+  const digits = t.replace(/\D/g, "");
+  if (t.startsWith("+")) return "+" + digits;
+  if (digits.startsWith("00")) return "+" + digits.slice(2);
+  const cc = (process.env.DEFAULT_PHONE_COUNTRY_CODE || "92").replace(/\D/g, "");
+  if (digits.startsWith("0")) return "+" + cc + digits.slice(1);
+  if (digits.startsWith(cc)) return "+" + digits;
+  return "+" + cc + digits;
+}
+
 const TITLES: Record<string, string> = { Mr: "mr", Mrs: "mrs", Ms: "ms", Miss: "miss", Master: "mr" };
 
 // Reserves the selected offer as a hold order (no payment to the airline now).
@@ -186,7 +199,7 @@ export async function createHoldOrder(opts: {
   email: string;
   phone: string;
 }): Promise<HoldResult> {
-  const phone = "+" + opts.phone.replace(/\D/g, "");
+  const phone = toE164(opts.phone);
   const { data } = await duffel<{
     data: { id: string; booking_reference: string; payment_status?: { payment_required_by?: string | null } };
   }>("/air/orders", {
