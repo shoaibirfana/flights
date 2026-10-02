@@ -85,24 +85,44 @@ body {
   }
 }
 @media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-  html, body {
+  @page { size: A4; margin: 8mm; }
+
+  body { background: #fff !important; }
+
+  .itinerary-wrap {
     background: #fff !important;
-  }
-  .print\:hidden {
-    display: none !important;
-  }
-  /* Hide the gray page backdrop and toolbar */
-  body > div > div:first-child {
-    display: none !important;
-  }
-  /* Scale the 920px canvas to fit A4 (≈794px printable width at 96dpi) */
-  body > div > div:last-child {
-    transform: scale(0.86);
-    transform-origin: top left;
     padding: 0 !important;
+    overflow: visible !important;
+  }
+  .itinerary-toolbar,
+  .itinerary-upsell,
+  .print\:hidden { display: none !important; }
+
+  .itinerary-page {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .itinerary-card,
+  .itinerary-traveler,
+  .itinerary-partners {
+    width: 100% !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Force fixed columns under print too */
+  .itinerary-card-body {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+  }
+  .itinerary-col-left,
+  .itinerary-col-mid,
+  .itinerary-col-right {
+    flex-shrink: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
