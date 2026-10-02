@@ -14,9 +14,9 @@ export default function TermsPage() {
         </p>
         <h2>1. Service</h2>
         <p>
-          {site.name} provides flight and hotel reservations for use as supporting documents in visa applications. A
-          reservation is not a paid ticket or a paid hotel stay and can&apos;t be used to board a flight or check in
-          to a hotel.
+          {site.name} provides flight reservations for use as supporting documents in visa applications. A
+          reservation is held by the airline but not paid or ticketed, so it can&apos;t be used to board a flight. To
+          travel, the booking must be paid and ticketed before the airline&apos;s deadline.
         </p>
         <h2>2. Customer responsibilities</h2>
         <p>
@@ -25,7 +25,7 @@ export default function TermsPage() {
         </p>
         <h2>3. Validity</h2>
         <p>
-          Airlines and hotels may cancel unpaid reservations after a period they set. We don&apos;t guarantee that a
+          Airlines cancel unpaid reservations after a period they set. We don&apos;t guarantee that a
           reservation stays active for any particular length of time.
         </p>
         <h2>4. Visa decisions</h2>
@@ -35,7 +35,7 @@ export default function TermsPage() {
         </p>
         <h2>5. Prices and third-party data</h2>
         <p>
-          Flight schedules, fares and hotel rates shown in search results come from third-party providers and may
+          Flight schedules, and fares shown in search results come from third-party providers and may
           change until the reservation is made.
         </p>
         <h2>6. Contact</h2>

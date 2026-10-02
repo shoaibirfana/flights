@@ -69,8 +69,8 @@ export default async function SuccessPage({
         payment === "none" && <StoredBookingReference orderId={orderId} />
       )}
       <p className="mt-4 leading-relaxed text-gray-600">
-        We&apos;ve emailed you a confirmation. Our team will contact you shortly to confirm your reservation and send your
-        PDF.
+        We&apos;ve emailed you a confirmation with your booking reference. Contact us if you have any questions about
+        your reservation.
       </p>
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
         <Link href="/" className="btn-primary">

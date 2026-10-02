@@ -19,13 +19,13 @@ export default function PrivacyPage() {
         </p>
         <h2>How we use it</h2>
         <ul>
-          <li>To search flights and hotels and to make your reservation</li>
+          <li>To search flights and to make your reservation</li>
           <li>To contact you about your order</li>
           <li>To meet legal and accounting requirements</li>
         </ul>
         <h2>Sharing</h2>
         <p>
-          We share your details only with the airlines, hotels and booking providers needed to make your
+          We share your details only with the airlines and booking providers needed to make your
           reservation. We don&apos;t sell your personal data.
         </p>
         <h2>Contact</h2>

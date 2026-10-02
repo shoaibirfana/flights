@@ -1,4 +1,4 @@
-import { calculatePrice, type ServiceType, type TripType } from "./site";
+import { calculatePrice, hotelBookingEnabled, type ServiceType, type TripType } from "./site";
 
 // `from`/`to` are display labels; `fromCode`/`toCode` are IATA airport or city codes.
 export type FlightLeg = { from: string; fromCode: string; to: string; toCode: string; date: string };
@@ -94,7 +94,7 @@ export function validateBooking(input: unknown): BookingRequest | null {
     };
   }
 
-  if (b.service === "hotel") {
+  if (b.service === "hotel" && hotelBookingEnabled) {
     const hotels = Array.isArray(b.hotels)
       ? b.hotels.slice(0, 10).map((h: Record<string, unknown>) => ({
           city: str(h?.city),

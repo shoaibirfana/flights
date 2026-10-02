@@ -6,13 +6,13 @@ import { formatPrice, pricing, site } from "@/lib/site";
 
 const steps = [
   {
-    title: "Search Flight or Hotel",
-    text: "Enter your route and dates. We show live flights and hotels with real schedules and availability.",
+    title: "Search Your Flight",
+    text: "Enter your route and dates. We show live flights with real schedules and availability.",
     icon: "🔎",
   },
   {
     title: "Select Your Option",
-    text: "Compare the results and pick the flight or hotel that matches your travel plan.",
+    text: "Compare the results and pick the flight that matches your travel plan.",
     icon: "✅",
   },
   {
@@ -21,14 +21,14 @@ const steps = [
     icon: "🧾",
   },
   {
-    title: "Receive Your PDF",
-    text: "We email your reservation PDF, ready to print and submit with your visa application.",
+    title: "Get Your Booking Reference",
+    text: "We reserve the flight with the airline and send you the real booking reference (PNR) by email.",
     icon: "📩",
   },
 ];
 
 const reasons = [
-  "Fast delivery of your reservation PDF by email",
+  "Real airline reservation, made instantly",
   "Verifiable reservation with airline booking reference (PNR)",
   "Avoid transit in countries that require a transit visa",
   "Free date changes if your appointment or travel plan changes",
@@ -62,10 +62,10 @@ export default function Home() {
               From {formatPrice(pricing.flight)} per traveler
             </span>
             <h1 className="mt-4 text-3xl leading-tight font-bold md:text-5xl">
-              Flight Reservation for Visa: Get Your Itinerary PDF Fast
+              Flight Reservation for Visa with a Real Airline PNR
             </h1>
             <p className="mt-4 text-base text-white/85 md:text-lg">
-              Verifiable flight reservations and hotel bookings for Schengen, UK, USA, Canada and other visa
+              Verifiable flight reservations for Schengen, UK, USA, Canada and other visa
               applications, without buying a full ticket.
             </p>
           </div>
@@ -78,7 +78,7 @@ export default function Home() {
 
       {/* How it works */}
       <section className="mx-auto max-w-7xl px-4 py-20">
-        <h2 className="text-center text-2xl font-bold md:text-4xl">How To Book a Flight or Hotel for Your Visa</h2>
+        <h2 className="text-center text-2xl font-bold md:text-4xl">How To Book a Flight Reservation for Your Visa</h2>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((s, i) => (
             <div key={s.title} className="relative rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
@@ -97,7 +97,7 @@ export default function Home() {
 
       {/* What is */}
       <section className="bg-brand-50">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 md:grid-cols-2">
+        <div className="mx-auto max-w-4xl px-4 py-20">
           <div>
             <h2 className="text-2xl font-bold md:text-3xl">What Is a Flight Reservation for Visa?</h2>
             <p className="mt-4 leading-relaxed text-gray-700">
@@ -112,17 +112,6 @@ export default function Home() {
               small fraction of the cost.
             </p>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold md:text-3xl">What Is a Hotel Reservation for Visa?</h2>
-            <p className="mt-4 leading-relaxed text-gray-700">
-              A hotel reservation shows where you will stay during your trip, with the hotel&apos;s name, address and
-              your check-in and check-out dates. Most tourist and visit visa applications ask for proof of
-              accommodation for every night of the stay.
-            </p>
-            <p className="mt-4 leading-relaxed text-gray-700">
-              We can book hotels in several cities, so your accommodation matches your itinerary exactly.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -131,12 +120,12 @@ export default function Home() {
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div>
             <h2 className="text-2xl font-bold md:text-4xl">
-              Why Do I Need a Flight &amp; Hotel Reservation for My Visa Application?
+              Why Do I Need a Flight Reservation for My Visa Application?
             </h2>
             <p className="mt-5 leading-relaxed text-gray-700">
               If you plan to travel abroad, you may need a visa from the embassy of the country you&apos;re visiting.
-              Most visa applications ask for proof of your travel plans: a flight itinerary and an accommodation
-              booking. With {site.name}, you can get both quickly for any destination.
+              Most visa applications ask for proof of your travel plans, usually a flight itinerary. With {site.name},
+              you can get a real flight reservation quickly for any destination.
             </p>
           </div>
           <ul className="space-y-4">
@@ -154,10 +143,10 @@ export default function Home() {
 
       {/* Pricing */}
       <section id="pricing" className="scroll-mt-20 bg-navy-900 py-20 text-white">
-        <div className="mx-auto max-w-5xl px-4">
+        <div className="mx-auto max-w-md px-4">
           <h2 className="text-center text-2xl font-bold md:text-4xl">Pricing &amp; Plans</h2>
           <p className="mt-3 text-center text-gray-300">Simple, transparent pricing with no hidden fees.</p>
-          <div className="mt-12 grid gap-8 md:grid-cols-2">
+          <div className="mt-12">
             {[
               {
                 name: "Flight Reservation",
@@ -170,12 +159,6 @@ export default function Home() {
                     ? `Multi-city: +${formatPrice(pricing.extraFlightLeg)} per extra flight`
                     : "Multi-city at no extra cost",
                 ],
-                href: "/#book",
-              },
-              {
-                name: "Hotel Reservation",
-                price: pricing.hotel,
-                features: ["Any length of stay", "Any city worldwide", "No fee to change date", "Price is per city"],
                 href: "/#book",
               },
             ].map((p) => (
@@ -227,7 +210,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 rounded-3xl bg-gradient-to-r from-brand-700 to-brand-500 p-10 text-white md:flex-row">
           <div>
             <h2 className="text-2xl font-bold md:text-3xl">Ready to apply for your visa?</h2>
-            <p className="mt-2 text-white/85">Get your flight and hotel reservation today.</p>
+            <p className="mt-2 text-white/85">Get your flight reservation today.</p>
           </div>
           <Link href="/#book" className="rounded-lg bg-white px-8 py-3 font-semibold text-brand-700 hover:bg-brand-50">
             Book Now

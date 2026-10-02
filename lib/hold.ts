@@ -32,6 +32,10 @@ export function holdSummary(result: HoldResult | null, error?: string): string {
       `Status: on hold${result.paymentRequiredBy ? ` until ${result.paymentRequiredBy}` : ""}`,
       `Duffel order: ${result.orderId}`,
       "",
+      "We advise you to print this and take it with you to ensure your trip goes as smoothly as possible.",
+      "This is a reservation only, not a paid ticket. It was created to secure your seat for your visa application.",
+      "The airline cancels it automatically at the deadline above unless it is paid. To confirm and ticket this booking, contact us before then.",
+      "",
     ].join("\n");
   }
   return `AUTOMATIC FLIGHT HOLD FAILED${error ? `: ${error}` : ""}. Please book this flight manually.\n\n`;

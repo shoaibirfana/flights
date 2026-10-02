@@ -1,12 +1,11 @@
-# Visa Flight & Hotel Reservation Website
+# Visa Flight Reservation Website
 
-A Next.js website for selling flight and hotel reservations for visa applications. Customers search **live**
-flights and hotels, select one, enter traveler details and submit an order. The team then issues the
-reservation PDF.
+A Next.js website for selling flight reservations for visa applications. Customers search **live**
+flights, select one, enter traveler details and get a real airline booking reference (PNR) on hold.
 
 ## Features
 - Flight search: one-way, round trip, multi-city, cabin class, up to 9 travelers, exclude transit countries
-- Hotel search: multiple cities, live hotel rates
+- Hotel search code is still in the repo but switched off (`hotelBookingEnabled` in `lib/site.ts`)
 - Live airport/city autocomplete
 - Order form → email to the business + confirmation email to the customer
 - Pages: Home, About, FAQ, Contact, Terms, Privacy, Refund Policy

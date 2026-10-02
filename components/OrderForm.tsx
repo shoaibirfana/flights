@@ -187,7 +187,7 @@ export default function OrderForm({
         <h3 className="mb-4 font-semibold">Contact Details</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="label">Email (we send your PDF here)</label>
+            <label className="label">Email (we send your booking reference here)</label>
             <input required type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div>

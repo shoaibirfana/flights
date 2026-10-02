@@ -13,7 +13,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     return (
       <div className="mx-auto max-w-xl px-4 py-24 text-center">
         <h1 className="text-2xl font-bold">Search details missing</h1>
-        <p className="mt-3 text-gray-600">Please enter your flight or hotel details to search.</p>
+        <p className="mt-3 text-gray-600">Please enter your flight details to search.</p>
         <Link href="/#book" className="btn-primary mt-6">
           Start Search
         </Link>

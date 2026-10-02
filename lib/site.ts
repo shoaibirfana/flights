@@ -1,7 +1,7 @@
 // Central site settings — edit this file to rebrand the website.
 export const site = {
   name: "Viza Bunny",
-  tagline: "Flight & hotel reservations for visa applications",
+  tagline: "Flight reservations for visa applications",
   email: "support@example.com",
   // International format, digits only (used for WhatsApp links)
   whatsapp: "923000000000",
@@ -23,6 +23,9 @@ export const pricing = {
   // Price per traveler for one hotel (one city)
   hotel: 1,
 };
+
+// Hotel booking is switched off: the site sells flight reservations only.
+export const hotelBookingEnabled = false;
 
 export type ServiceType = "flight" | "hotel";
 export type TripType = "oneway" | "roundtrip" | "multicity";

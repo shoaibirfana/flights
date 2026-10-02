@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="md:col-span-2">
           <Logo light />
           <p className="mt-4 max-w-md text-sm leading-relaxed">
-            Get the flight and hotel reservations you need for your visa application in minutes. We send
+            Get the flight reservation you need for your visa application in minutes. We send
             reservations for any destination, and they&apos;re suitable for visa applications to any country.
           </p>
         </div>

@@ -31,7 +31,7 @@ export const faqs: { q: string; a: string }[] = [
       pricing.extraFlightLeg > 0
         ? ` Multi-city costs an extra ${formatPrice(pricing.extraFlightLeg)} per traveler for each flight after the second.`
         : ""
-    } A hotel reservation costs ${formatPrice(pricing.hotel)} per traveler per city.`,
+    }`,
   },
   {
     q: "Can I use the reservation to board a flight?",
