@@ -84,3 +84,14 @@ body {
     animation: none;
   }
 }
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm 10mm;
+  }
+  html, body {
+    background: #fff !important;
+  }
+  .print\:hidden { display: none !important; }
+  body { font-size: 11pt; color: #111; }
+}
