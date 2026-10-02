@@ -7,6 +7,11 @@ import { site } from "@/lib/site";
 import { LogoMark } from "./Logo";
 import { SELECTION_KEY } from "./SearchResults";
 
+const fmtDateTime = (iso: string) => {
+  // "2026-10-16T09:55:00" -> "2026-10-16 09:55"
+  return iso.replace("T", " ").slice(0, 16);
+};
+
 export default function TripSummary({
   booking,
   encoded,
@@ -110,7 +115,7 @@ export default function TripSummary({
                 <tbody className="text-gray-800">
                   <tr className="border-t border-gray-100">
                     <td className="px-4 py-3">—</td>
-                    <td className="px-4 py-3">Economy</td>
+                    <td className="px-4 py-3 capitalize">{booking.cabin ?? "Economy"}</td>
                     <td className="px-4 py-3 font-mono">XXX</td>
                     <td className="px-4 py-3 font-mono">XXX</td>
                   </tr>
@@ -122,16 +127,55 @@ export default function TripSummary({
           {/* Flight Information */}
           <section className="mt-8">
             <h2 className="text-lg font-bold text-navy-900">Flight Information</h2>
-            <div className="mt-3 space-y-5">
+            <div className="mt-4 space-y-6">
               {selections.map((s) => (
-                <div key={s.ref} className="rounded-lg border border-gray-200 p-4">
-                  <ul className="space-y-1.5 text-sm text-gray-800">
+                <div key={s.ref}>
+                  {/* Airline + route header */}
+                  <ul className="space-y-1 text-sm text-gray-800">
                     {s.summary.map((l, i) => (
                       <li key={i} className={i === 0 ? "text-base font-semibold text-navy-900" : ""}>
                         {l}
                       </li>
                     ))}
                   </ul>
+
+                  {/* Per-segment table */}
+                  {s.segments && s.segments.length > 0 && (
+                    <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                          <tr>
+                            <th className="px-3 py-2 font-semibold">Flight</th>
+                            <th className="px-3 py-2 font-semibold">From</th>
+                            <th className="px-3 py-2 font-semibold">To</th>
+                            <th className="px-3 py-2 font-semibold">Departure</th>
+                            <th className="px-3 py-2 font-semibold">Arrival</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-800">
+                          {s.segments.map((seg, i) => (
+                            <tr key={i} className="border-t border-gray-100 align-top">
+                              <td className="px-3 py-2 font-mono font-semibold text-navy-900">
+                                {seg.flightNumber}
+                              </td>
+                              <td className="px-3 py-2">
+                                {seg.fromName} ({seg.from})
+                              </td>
+                              <td className="px-3 py-2">
+                                {seg.toName} ({seg.to})
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                {fmtDateTime(seg.departAt)}
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                {fmtDateTime(seg.arriveAt)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -147,12 +191,12 @@ export default function TripSummary({
               <div>
                 <p className="font-semibold">Adults</p>
                 <p className="mt-1">
-                  <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for detailed
-                  baggage policies
+                  <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for
+                  detailed baggage policies
                 </p>
                 <p className="mt-1">
-                  <span className="font-semibold">Checked baggage:</span> 2 pieces per person. Dimensions (length +
-                  width + height) of each piece cannot exceed 158cm
+                  <span className="font-semibold">Checked baggage:</span> Please contact the airline for
+                  detailed baggage policies
                 </p>
               </div>
             </div>
@@ -171,13 +215,14 @@ export default function TripSummary({
                 their ticket. Their boarding pass or itinerary may also be required.
               </li>
               <li>
-                Please note that tickets must be used in the sequence set out in the itinerary, otherwise airlines
-                reserve the right to refuse carriage. {site.name} bears no responsibility if passengers are unable
-                to board a plane due to not complying with airline policies and regulations.
+                Please note that tickets must be used in the sequence set out in the itinerary, otherwise
+                airlines reserve the right to refuse carriage. {site.name} bears no responsibility if
+                passengers are unable to board a plane due to not complying with airline policies and
+                regulations.
               </li>
               <li>
-                We make the suggestion to arrive at the airport at least 3h prior to departure to ensure you have
-                enough time to check in.
+                We make the suggestion to arrive at the airport at least 3h prior to departure to ensure you
+                have enough time to check in.
               </li>
             </ul>
           </section>
