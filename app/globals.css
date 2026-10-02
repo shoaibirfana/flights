@@ -87,11 +87,23 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 12mm 10mm;
+    margin: 10mm;
   }
   html, body {
     background: #fff !important;
   }
-  .print\:hidden { display: none !important; }
-  body { font-size: 11pt; color: #111; }
+  .print\:hidden {
+    display: none !important;
+  }
+  body {
+    font-size: 10.5pt;
+    color: #111;
+  }
+  /* Keep each flight card from breaking across pages */
+  section {
+    break-inside: avoid;
+  }
+  article {
+    break-inside: auto;
+  }
 }
