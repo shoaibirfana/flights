@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  describeBooking,
   type BookingRequest,
   type FlightSegment,
   type Selection,
@@ -15,111 +14,239 @@ import { SELECTION_KEY } from "./SearchResults";
 
 type OrderDetails = Awaited<ReturnType<typeof getOrderDetails>>;
 
-const fmtDateTime = (iso: string) => iso.replace("T", " ").slice(0, 16);
+/* ---------- Layout constants ---------- */
+const BORDER = "#d4d4d4";
+const GREY_PANEL = "#cccccc";
+const TEXT = "#222222";
 
-/* ---------- Shared footer (partners) ---------- */
+/* ---------- Split a name into 2-3 short lines for the PDF look ---------- */
+const nameLines = (name: string): string[] => {
+  const words = (name || "").split(/\s+/).filter(Boolean);
+  if (words.length <= 2) return words;
+  // Group into 3 lines max
+  const per = Math.ceil(words.length / 3);
+  const out: string[] = [];
+  for (let i = 0; i < words.length; i += per) out.push(words.slice(i, i + per).join(" "));
+  return out.slice(0, 3);
+};
+
+const MEALS = ["Drinks and quality", "products offered", "for sale"];
+
+/* ---------- Airline logo (Duffel URL, hidden if missing) ---------- */
+function AirlineLogo({ src }: { src?: string | null }) {
+  if (!src) return <div style={{ height: 44 }} />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      style={{ width: 154, height: 44, objectFit: "contain" }}
+    />
+  );
+}
+
+/* ---------- Partner logos strip ---------- */
 function PartnerStrip() {
   return (
-    <div className="mt-8 border-t border-gray-200 pt-5">
-      <p className="mb-2 text-center text-[10px] uppercase tracking-widest text-gray-400">
-        Trusted by travel agencies worldwide
-      </p>
-      <div className="flex flex-nowrap items-center justify-center gap-x-4 overflow-hidden">
-        {Array.from({ length: 11 }, (_, i) => i + 1).map((n) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={n}
-            src={`/partners/${n}.png`}
-            alt=""
-            className="h-5 w-auto shrink-0 object-contain grayscale"
-          />
-        ))}
-      </div>
+    <div
+      style={{
+        width: 818,
+        marginTop: 24,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      {Array.from({ length: 11 }, (_, i) => i + 1).map((n) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={n}
+          src={`/partners/${n}.png`}
+          alt=""
+          style={{ height: 32, maxWidth: 66, objectFit: "contain", filter: "grayscale(1)" }}
+        />
+      ))}
     </div>
   );
 }
 
-/* ---------- One flight card, matching the Qatar PDF layout ---------- */
-function FlightCard({
-  f,
-}: {
-  f: OrderDetails["slices"][number]["flights"][number];
-}) {
+/* ---------- Flight icon ---------- */
+const FlightIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={TEXT} strokeWidth={1.6}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M6.5 6.5l11 11M8 15l3-1 3 4 1-.5-1.5-4.5 3-1.5a1.3 1.3 0 00-1-2.4l-3 1.4L9 6.8l-1 .4 1.6 4-2.8 1-1.5-1-.8.3 1.2 2.2z" />
+  </svg>
+);
+
+const Arrow = () => (
+  <svg width="24" height="14" viewBox="0 0 24 14" fill="none" stroke={TEXT} strokeWidth={1.6}>
+    <path d="M1 7h21M16 1l6 6-6 6" />
+  </svg>
+);
+
+/* ---------- One flight card (pixel-locked layout) ---------- */
+type DFFlight = OrderDetails["slices"][number]["flights"][number];
+
+function FlightCard({ f, status }: { f: DFFlight; status: string }) {
+  const airlineLabel = `${f.airline.toUpperCase()} (${f.airlineCode})`;
+  const flightNumOnly = f.flightNumber.replace(f.airlineCode, "").replace(/^0+/, "") || f.flightNumber;
+  const lbl: React.CSSProperties = { fontSize: 16, lineHeight: "18px" };
+
   return (
-    <div className="border border-gray-300 p-4">
-      {/* Header: airline logo + name + flight no + date */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-2">
-        <div className="flex items-center gap-2">
-          {f.logoSymbol ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={f.logoSymbol} alt="" className="h-7 w-7 object-contain" />
-          ) : null}
-          <span className="font-semibold text-navy-900">
-            FLIGHT — {f.airline.toUpperCase()} {f.flightNumber}
-          </span>
-        </div>
-        <span className="text-xs text-gray-500">{f.departDate}</span>
+    <div style={{ border: `1px solid ${BORDER}`, width: 818 }}>
+      {/* Header */}
+      <div
+        style={{
+          height: 48,
+          borderBottom: `1px solid ${BORDER}`,
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          paddingLeft: 6,
+        }}
+      >
+        <FlightIcon />
+        <span style={{ fontSize: 17, fontWeight: 700 }}>
+          FLIGHT - {airlineLabel} {flightNumOnly} - {f.departDate}
+        </span>
       </div>
 
-      {/* Depart / Arrive block */}
-      <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <div className="text-[11px] uppercase tracking-wide text-gray-500">Depart</div>
-          <div className="font-semibold">
-            {f.from.code} — {f.from.name}
+      {/* Body */}
+      <div style={{ display: "flex", height: 295 }}>
+        {/* Left column */}
+        <div style={{ width: 236, borderRight: `1px solid ${BORDER}`, position: "relative" }}>
+          <div style={{ position: "absolute", top: 54, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+            <AirlineLogo src={f.logoSymbol} />
           </div>
-          <div className="text-gray-700">
-            {f.departTime} · {f.departDate}
+          <div
+            style={{
+              position: "absolute",
+              top: 163,
+              left: 0,
+              right: 0,
+              textAlign: "center",
+              fontSize: 16,
+              fontWeight: 700,
+            }}
+          >
+            {airlineLabel}
+          </div>
+          <div style={{ position: "absolute", top: 201, left: 8, fontSize: 16, lineHeight: "27px" }}>
+            <div>
+              Flight number:&nbsp; <b>{f.airlineCode} - {flightNumOnly}</b>
+            </div>
+            <div>
+              Status:&nbsp; <b style={{ fontSize: 17 }}>{status}</b>
+            </div>
+            <div>
+              Duration:&nbsp; <b style={{ fontSize: 17 }}>{f.duration || "—"}</b>
+            </div>
           </div>
         </div>
-        <div>
-          <div className="text-[11px] uppercase tracking-wide text-gray-500">Arrive</div>
-          <div className="font-semibold">
-            {f.to.code} — {f.to.name}
+
+        {/* Middle column */}
+        <div style={{ flex: 1, position: "relative" }}>
+          <div style={{ position: "absolute", top: 52, left: 10, ...lbl }}>Depart</div>
+          <div
+            style={{
+              position: "absolute",
+              top: 74,
+              left: 10,
+              fontSize: 28,
+              fontWeight: 700,
+              lineHeight: "34px",
+            }}
+          >
+            {f.from.code}
           </div>
-          <div className="text-gray-700">
-            {f.arriveTime} · {f.arriveDate}
+
+          <div
+            style={{
+              position: "absolute",
+              top: 58,
+              left: 0,
+              right: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Arrow />
+            <div style={{ marginTop: 10, fontSize: 16, fontWeight: 700 }}>{f.duration || "—"}</div>
           </div>
+
+          <div style={{ position: "absolute", top: 52, right: 8, textAlign: "right", ...lbl }}>Arrive</div>
+          <div
+            style={{
+              position: "absolute",
+              top: 74,
+              right: 8,
+              fontSize: 28,
+              fontWeight: 700,
+              lineHeight: "34px",
+            }}
+          >
+            {f.to.code}
+          </div>
+
+          {/* Divider */}
+          <div style={{ position: "absolute", top: 124, left: 0, right: 0, borderTop: `1px solid ${BORDER}` }} />
+
+          {/* Depart details */}
+          <div style={{ position: "absolute", top: 133, left: 10, ...lbl }}>
+            {nameLines(f.from.name).map((l) => (
+              <div key={l}>{l}</div>
+            ))}
+          </div>
+          <div style={{ position: "absolute", top: 196, left: 10, fontSize: 26, fontWeight: 700 }}>
+            {f.departTime}
+          </div>
+          <div style={{ position: "absolute", top: 228, left: 10, fontSize: 16 }}>{f.departDate}</div>
+
+          {/* Arrive details */}
+          <div style={{ position: "absolute", top: 133, left: 269, ...lbl }}>
+            {nameLines(f.to.name).map((l) => (
+              <div key={l}>{l}</div>
+            ))}
+          </div>
+          <div style={{ position: "absolute", top: 196, left: 269, fontSize: 26, fontWeight: 700 }}>
+            {f.arriveTime}
+          </div>
+          <div style={{ position: "absolute", top: 228, left: 269, fontSize: 16 }}>{f.arriveDate}</div>
+        </div>
+
+        {/* Grey details column */}
+        <div
+          style={{
+            width: 183,
+            background: GREY_PANEL,
+            padding: "54px 12px 0",
+            fontSize: 16,
+            lineHeight: "17.5px",
+          }}
+        >
+          <div>Class Of Service:</div>
+          <div style={{ color: "#444" }}>{f.cabinClass ?? "Economy"}</div>
+          <div style={{ marginTop: 9 }}>Plane:</div>
+          <div style={{ color: "#444", minHeight: 9 }}>{f.aircraft ?? ""}</div>
+          <div>Meals:</div>
+          <div style={{ color: "#444" }}>
+            {MEALS.map((l) => (
+              <div key={l}>{l}</div>
+            ))}
+          </div>
+          <div style={{ marginTop: 9 }}>Seat:</div>
+          <div style={{ color: "#444" }}>Check-in required</div>
         </div>
       </div>
 
-      {/* Fact row — single row, no duplicates */}
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-gray-200 pt-3 text-xs text-gray-700 sm:grid-cols-4">
-        <div>
-          <span className="text-gray-500">Flight number: </span>
-          <span className="font-medium">{f.flightNumber}</span>
-        </div>
-        <div>
-          <span className="text-gray-500">Duration: </span>
-          <span className="font-medium">{f.duration || "—"}</span>
-        </div>
-        <div>
-          <span className="text-gray-500">Class: </span>
-          <span className="font-medium">{f.cabinClass ?? "Economy"}</span>
-        </div>
-        <div>
-          <span className="text-gray-500">Aircraft: </span>
-          <span className="font-medium">{f.aircraft ?? "—"}</span>
-        </div>
-        {f.operatedBy && f.operatedBy !== f.airline ? (
-          <div className="col-span-2 sm:col-span-4">
-            <span className="text-gray-500">Operated by: </span>
-            <span className="font-medium">{f.operatedBy}</span>
-          </div>
-        ) : null}
-        {f.connection ? (
-          <div className="col-span-2 sm:col-span-4">
-            <span className="text-gray-500">Transfer: </span>
-            <span className="font-medium">
-              {f.connection.airport.name} ({f.connection.airport.code}) · wait {f.connection.wait}
-            </span>
-          </div>
-        ) : null}
-      </div>
+      {/* Bottom strip */}
+      <div style={{ height: 38, borderTop: `1px solid ${BORDER}` }} />
     </div>
   );
 }
 
+/* ---------- Main component ---------- */
 export default function TripSummary({
   booking,
   encoded,
@@ -156,124 +283,151 @@ export default function TripSummary({
 
   /* ---------- Verified path: real Duffel order ---------- */
   if (order) {
-    const created = new Date().toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
     const dest = order.destination;
-    const tripLine = dest
-      ? `TRIP TO ${dest.city || dest.name}${dest.code ? ` (${dest.code})` : ""}`
-      : "TRIP";
-
-    const payBy = order.payBy
-      ? new Date(order.payBy).toLocaleString("en-GB", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : null;
+    const destination = dest
+      ? `${dest.city || dest.name} ${dest.code}`.trim()
+      : "";
 
     return (
-      <div className="bg-gray-50 print:bg-white">
-        <div className="mx-auto max-w-3xl px-4 py-12 print:max-w-none print:p-0">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
-            <Link
-              href={`/order?b=${encodeURIComponent(encoded)}`}
-              className="text-sm text-brand-600 hover:underline"
-            >
-              ← Back to booking
-            </Link>
-            <button onClick={() => window.print()} className="btn-outline !px-4 !py-2 text-sm">
-              Print / Save as PDF
-            </button>
+      <div style={{ background: "#f3f3f3", minHeight: "100vh", padding: "24px 0", overflowX: "auto" }}>
+        {/* Toolbar (hidden on print) */}
+        <div
+          className="print:hidden"
+          style={{
+            width: 920,
+            margin: "0 auto 16px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Link
+            href={`/order?b=${encodeURIComponent(encoded)}`}
+            style={{ fontSize: 13, color: "#0369a1", textDecoration: "underline" }}
+          >
+            ← Back to booking
+          </Link>
+          <button
+            onClick={() => window.print()}
+            style={{
+              padding: "6px 16px",
+              fontSize: 13,
+              border: `1px solid ${TEXT}`,
+              background: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            Print / Save as PDF
+          </button>
+        </div>
+
+        {/* Page */}
+        <div
+          style={{
+            width: 920,
+            minHeight: 1300,
+            margin: "0 auto",
+            background: "#fff",
+            color: TEXT,
+            fontFamily: "Poppins, Arial, sans-serif",
+            padding: "48px 49px 40px 53px",
+            boxSizing: "border-box",
+          }}
+        >
+          {/* Title */}
+          <div style={{ fontSize: 22, lineHeight: "25px", marginBottom: 58 }}>
+            {order.tripDate ?? ""}{" "}
+            <span style={{ fontSize: 17, textTransform: "uppercase" }}>Trip to</span>
+            <br />
+            {destination}
           </div>
 
-          <article className="border border-gray-200 bg-white p-6 md:p-10 print:border-0 print:p-0">
-            <header className="flex items-center justify-between gap-4 border-b border-gray-300 pb-5">
-              <div className="flex items-center gap-3">
-                <LogoMark className="h-8 w-auto" />
-                <span className="font-semibold uppercase tracking-wide">{site.name}</span>
-              </div>
-              <span className="text-xs text-gray-500">Created {created}</span>
-            </header>
-
-            <h1 className="mt-6 text-lg font-bold text-navy-900">
-              {tripLine}
-              {order.tripDate ? ` · ${order.tripDate}` : ""}
-            </h1>
-
-            {/* Traveler / booking table */}
-            <div className="mt-4 overflow-hidden border border-gray-300">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Traveler(s)</th>
-                    <th className="px-4 py-3 font-semibold">Reservation code</th>
-                    <th className="px-4 py-3 font-semibold">E-ticket no.</th>
-                    <th className="px-4 py-3 font-semibold">Airline reservation code</th>
-                  </tr>
-                </thead>
-                <tbody className="text-gray-800">
-                  {order.passengers.map((p) => (
-                    <tr key={p} className="border-t border-gray-200">
-                      <td className="px-4 py-3 font-semibold">{p}</td>
-                      <td className="px-4 py-3 font-mono">{order.airlineBookingReference}</td>
-                      <td className="px-4 py-3 text-gray-500">Not issued (on hold)</td>
-                      <td className="px-4 py-3 font-mono">{order.airlineBookingReference}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Traveler box */}
+          <div style={{ border: `1px solid ${BORDER}`, width: 818, marginBottom: 24 }}>
+            <div
+              style={{
+                height: 42,
+                borderBottom: `1px solid ${BORDER}`,
+                display: "flex",
+                alignItems: "center",
+                paddingLeft: 8,
+                fontSize: 17,
+                fontWeight: 700,
+              }}
+            >
+              TRAVELER(S)
             </div>
-
-            <p className="mt-3 text-xs text-gray-600">
-              <span className="text-gray-500">Status: </span>
-              <strong>{order.status}</strong>
-              {payBy ? <> · pay by {payBy}</> : null}
-            </p>
-
-            {/* Flight Information */}
-            <section className="mt-8">
-              <h2 className="text-lg font-bold text-navy-900">Flight Information</h2>
-
-              <div className="mt-4 space-y-4">
-                {order.slices.map((slice, si) => (
-                  <div key={si} className="space-y-3">
-                    {slice.flights.map((f, fi) => (
-                      <FlightCard key={fi} f={f} />
-                    ))}
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 8px 10px" }}>
+              <div>
+                <div style={{ fontSize: 16 }}>Passenger(s)</div>
+                {order.passengers.map((p) => (
+                  <div key={p} style={{ marginTop: 16, fontSize: 17, fontWeight: 700 }}>
+                    {p}
                   </div>
                 ))}
               </div>
-            </section>
-
-            <PartnerStrip />
-          </article>
-
-          {/* Upsell (hidden on print) */}
-          <div className="mt-6 border border-navy-900 bg-navy-900 p-6 text-white md:flex md:items-center md:justify-between md:gap-6 print:hidden">
-            <div>
-              <h2 className="text-lg font-semibold">Need a paid reservation?</h2>
-              <p className="mt-1 text-sm text-gray-300">
-                Get a ticketed booking with an e-ticket number emailed as a PDF.
-              </p>
+              <div style={{ textAlign: "right", fontSize: 16, lineHeight: "21px" }}>
+                <div>Reservation Code</div>
+                <div style={{ fontWeight: 700 }}>{order.airlineBookingReference}</div>
+                <div>Airline Reservation Code</div>
+                <div style={{ fontWeight: 700, paddingRight: 4 }}>{order.airlineBookingReference}</div>
+              </div>
             </div>
-            <Link
-              href={`/order?b=${encodeURIComponent(encoded)}`}
-              className="mt-4 inline-flex shrink-0 items-center justify-center bg-white px-6 py-3 font-semibold text-navy-900 hover:bg-brand-50 md:mt-0"
-            >
-              Continue · {price}
-            </Link>
           </div>
+
+          {/* Flight cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            {order.slices.flatMap((slice, si) =>
+              slice.flights.map((f, fi) => (
+                <FlightCard key={`${si}-${fi}`} f={f} status={order.status} />
+              )),
+            )}
+          </div>
+
+          {/* Footer logos */}
+          <PartnerStrip />
+        </div>
+
+        {/* Upsell (hidden on print) */}
+        <div
+          className="print:hidden"
+          style={{
+            width: 920,
+            margin: "24px auto 0",
+            background: "#0b1f3a",
+            color: "#fff",
+            padding: 24,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 24,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 600 }}>Need a paid reservation?</div>
+            <div style={{ marginTop: 4, fontSize: 14, color: "#cbd5e1" }}>
+              Get a ticketed booking with an e-ticket number emailed as a PDF.
+            </div>
+          </div>
+          <Link
+            href={`/order?b=${encodeURIComponent(encoded)}`}
+            style={{
+              display: "inline-block",
+              padding: "12px 24px",
+              background: "#fff",
+              color: "#0b1f3a",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+          >
+            Continue · {price}
+          </Link>
         </div>
       </div>
     );
   }
 
-  /* ---------- Fallback path: preview from sessionStorage ---------- */
+  /* ---------- Fallback: no Duffel order yet ---------- */
   if (selections === undefined) return null;
   if (!selections) {
     return (
@@ -385,8 +539,12 @@ export default function TripSummary({
                               <td className="px-3 py-2">
                                 {seg.toName} ({seg.to})
                               </td>
-                              <td className="px-3 py-2 whitespace-nowrap">{fmtDateTime(seg.departAt)}</td>
-                              <td className="px-3 py-2 whitespace-nowrap">{fmtDateTime(seg.arriveAt)}</td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                {seg.departAt.replace("T", " ").slice(0, 16)}
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                {seg.arriveAt.replace("T", " ").slice(0, 16)}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -400,21 +558,6 @@ export default function TripSummary({
 
           <PartnerStrip />
         </article>
-
-        <div className="mt-6 border border-navy-900 bg-navy-900 p-6 text-white md:flex md:items-center md:justify-between md:gap-6 print:hidden">
-          <div>
-            <h2 className="text-lg font-semibold">Need it for a visa application?</h2>
-            <p className="mt-1 text-sm text-gray-300">
-              Get a verifiable reservation with a booking reference (PNR), emailed as a PDF.
-            </p>
-          </div>
-          <Link
-            href={`/order?b=${encodeURIComponent(encoded)}`}
-            className="mt-4 inline-flex shrink-0 items-center justify-center bg-white px-6 py-3 font-semibold text-navy-900 hover:bg-brand-50 md:mt-0"
-          >
-            Get reservation · {price}
-          </Link>
-        </div>
       </div>
     </div>
   );
