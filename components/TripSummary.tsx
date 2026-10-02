@@ -20,6 +20,109 @@ const fmtDateTime = (iso: string) => iso.replace("T", " ").slice(0, 16);
 // Show the hold disclaimer; flip to false once Duffel is switched to live tokens.
 const SHOW_HOLD_DISCLAIMER = true;
 
+/* ---------- Shared footer (partners) ---------- */
+function PartnerStrip() {
+  return (
+    <div className="mt-8 border-t border-gray-200 pt-5">
+      <p className="mb-2 text-center text-[10px] uppercase tracking-widest text-gray-400">
+        Trusted by travel agencies worldwide
+      </p>
+      <div className="flex flex-nowrap items-center justify-center gap-x-4 overflow-hidden">
+        {Array.from({ length: 11 }, (_, i) => i + 1).map((n) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={n}
+            src={`/partners/${n}.png`}
+            alt=""
+            className="h-5 w-auto shrink-0 object-contain grayscale"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- One flight card, matching the Qatar PDF layout ---------- */
+function FlightCard({
+  f,
+}: {
+  f: OrderDetails["slices"][number]["flights"][number];
+}) {
+  return (
+    <div className="rounded-lg border border-gray-200 p-4">
+      {/* Header: airline logo + name + flight no + date */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2">
+        <div className="flex items-center gap-2">
+          {f.logoSymbol ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={f.logoSymbol} alt="" className="h-7 w-7 object-contain" />
+          ) : null}
+          <span className="font-semibold text-navy-900">
+            FLIGHT — {f.airline.toUpperCase()} {f.flightNumber}
+          </span>
+        </div>
+        <span className="text-xs text-gray-500">{f.departDate}</span>
+      </div>
+
+      {/* Depart / Arrive block */}
+      <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <div className="text-[11px] uppercase tracking-wide text-gray-500">Depart</div>
+          <div className="font-semibold">
+            {f.from.code} — {f.from.name}
+          </div>
+          <div className="text-gray-700">
+            {f.departTime} · {f.departDate}
+          </div>
+        </div>
+        <div>
+          <div className="text-[11px] uppercase tracking-wide text-gray-500">Arrive</div>
+          <div className="font-semibold">
+            {f.to.code} — {f.to.name}
+          </div>
+          <div className="text-gray-700">
+            {f.arriveTime} · {f.arriveDate}
+          </div>
+        </div>
+      </div>
+
+      {/* Fact row — single row, no duplicates */}
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-gray-100 pt-3 text-xs text-gray-700 sm:grid-cols-4">
+        <div>
+          <span className="text-gray-500">Flight number: </span>
+          <span className="font-medium">{f.flightNumber}</span>
+        </div>
+        <div>
+          <span className="text-gray-500">Duration: </span>
+          <span className="font-medium">{f.duration || "—"}</span>
+        </div>
+        <div>
+          <span className="text-gray-500">Class: </span>
+          <span className="font-medium">{f.cabinClass ?? "Economy"}</span>
+        </div>
+        <div>
+          <span className="text-gray-500">Aircraft: </span>
+          <span className="font-medium">{f.aircraft ?? "—"}</span>
+        </div>
+        {f.operatedBy && f.operatedBy !== f.airline ? (
+          <div className="col-span-2 sm:col-span-4">
+            <span className="text-gray-500">Operated by: </span>
+            <span className="font-medium">{f.operatedBy}</span>
+          </div>
+        ) : null}
+        {f.connection ? (
+          <div className="col-span-2 sm:col-span-4">
+            <span className="text-gray-500">Transfer: </span>
+            <span className="font-medium">
+              {f.connection.airport.name} ({f.connection.airport.code}) · wait {f.connection.wait}
+            </span>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default function TripSummary({
   booking,
   encoded,
@@ -54,31 +157,8 @@ export default function TripSummary({
     }
   }, [encoded]);
 
-  // ---- Render helpers ------------------------------------------------------
-
-  const partnerLogos = (
-    <div className="mt-10 border-t border-gray-200 pt-6 print:mt-8">
-      <p className="mb-3 text-center text-xs uppercase tracking-wide text-gray-400">
-        Trusted by travel agencies worldwide
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-        {Array.from({ length: 11 }, (_, i) => i + 1).map((n) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={n}
-            src={`/partners/${n}.png`}
-            alt=""
-            className="h-6 w-auto object-contain opacity-60 grayscale print:opacity-100 print:grayscale"
-          />
-        ))}
-      </div>
-    </div>
-  );
-
-  // ---- Data-source branch --------------------------------------------------
-
+  /* ---------- Verified path: real Duffel order ---------- */
   if (order) {
-    // The verified path: full flight itinerary from Duffel, with real PNR and passenger names.
     const created = new Date().toLocaleDateString("en-GB", {
       day: "numeric",
       month: "long",
@@ -124,7 +204,8 @@ export default function TripSummary({
             </header>
 
             <h1 className="mt-6 text-lg font-bold text-navy-900">
-              {tripLine} · {order.tripDate ?? ""}
+              {tripLine}
+              {order.tripDate ? ` · ${order.tripDate}` : ""}
             </h1>
 
             {/* Traveler / booking table */}
@@ -133,9 +214,9 @@ export default function TripSummary({
                 <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Traveler(s)</th>
-                    <th className="px-4 py-3 font-semibold">Reservation Code</th>
-                    <th className="px-4 py-3 font-semibold">E-ticket No.</th>
-                    <th className="px-4 py-3 font-semibold">Airline Reservation Code</th>
+                    <th className="px-4 py-3 font-semibold">Reservation code</th>
+                    <th className="px-4 py-3 font-semibold">E-ticket no.</th>
+                    <th className="px-4 py-3 font-semibold">Airline reservation code</th>
                   </tr>
                 </thead>
                 <tbody className="text-gray-800">
@@ -151,9 +232,9 @@ export default function TripSummary({
               </table>
             </div>
 
-            {/* Status pill */}
             <p className="mt-3 text-xs text-gray-600">
-              Status: <strong>{order.status}</strong>
+              <span className="text-gray-500">Status: </span>
+              <strong>{order.status}</strong>
               {payBy ? <> · pay by {payBy}</> : null}
             </p>
 
@@ -161,72 +242,11 @@ export default function TripSummary({
             <section className="mt-8">
               <h2 className="text-lg font-bold text-navy-900">Flight Information</h2>
 
-              <div className="mt-4 space-y-6">
+              <div className="mt-4 space-y-4">
                 {order.slices.map((slice, si) => (
                   <div key={si} className="space-y-3">
                     {slice.flights.map((f, fi) => (
-                      <div key={fi} className="rounded-lg border border-gray-200 p-4">
-                        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 pb-2">
-                          <span className="font-semibold text-navy-900">
-                            FLIGHT — {f.airline.toUpperCase()} {f.flightNumber}
-                          </span>
-                          <span className="text-xs text-gray-500">{f.departDate}</span>
-                        </div>
-
-                        <div className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                          <div>
-                            <div className="text-xs uppercase tracking-wide text-gray-500">Depart</div>
-                            <div className="font-semibold">
-                              {f.from.code} — {f.from.name}
-                            </div>
-                            <div>
-                              {f.departTime} · {f.departDate}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs uppercase tracking-wide text-gray-500">Arrive</div>
-                            <div className="font-semibold">
-                              {f.to.code} — {f.to.name}
-                            </div>
-                            <div>
-                              {f.arriveTime} · {f.arriveDate}
-                            </div>
-                          </div>
-                        </div>
-
-                        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-gray-100 pt-3 text-xs text-gray-700 sm:grid-cols-4">
-                          <div>
-                            <dt className="text-gray-500">Flight number</dt>
-                            <dd className="font-medium">{f.flightNumber}</dd>
-                          </div>
-                          <div>
-                            <dt className="text-gray-500">Duration</dt>
-                            <dd className="font-medium">{f.duration}</dd>
-                          </div>
-                          <div>
-                            <dt className="text-gray-500">Class of Service</dt>
-                            <dd className="font-medium">{f.cabinClass ?? "Economy"}</dd>
-                          </div>
-                          <div>
-                            <dt className="text-gray-500">Aircraft</dt>
-                            <dd className="font-medium">{f.aircraft ?? "—"}</dd>
-                          </div>
-                          {f.operatedBy && f.operatedBy !== f.airline ? (
-                            <div className="col-span-2 sm:col-span-4">
-                              <dt className="text-gray-500">Operated by</dt>
-                              <dd className="font-medium">{f.operatedBy}</dd>
-                            </div>
-                          ) : null}
-                          {f.connection ? (
-                            <div className="col-span-2 sm:col-span-4">
-                              <dt className="text-gray-500">Transfer</dt>
-                              <dd className="font-medium">
-                                {f.connection.airport.name} ({f.connection.airport.code}) · wait {f.connection.wait}
-                              </dd>
-                            </div>
-                          ) : null}
-                        </dl>
-                      </div>
+                      <FlightCard key={fi} f={f} />
                     ))}
                   </div>
                 ))}
@@ -239,18 +259,16 @@ export default function TripSummary({
               <p className="mt-2 text-sm text-gray-700">
                 Please check the baggage information at the bottom for more details.
               </p>
-              <div className="mt-4 space-y-4 text-sm text-gray-800">
-                <div>
-                  <p className="font-semibold">Adults</p>
-                  <p className="mt-1">
-                    <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for
-                    detailed baggage policies
-                  </p>
-                  <p className="mt-1">
-                    <span className="font-semibold">Checked baggage:</span> Please contact the airline for
-                    detailed baggage policies
-                  </p>
-                </div>
+              <div className="mt-3 text-sm text-gray-800">
+                <p className="font-semibold">Adults</p>
+                <p className="mt-1">
+                  <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for
+                  detailed baggage policies
+                </p>
+                <p className="mt-1">
+                  <span className="font-semibold">Checked baggage:</span> Please contact the airline for
+                  detailed baggage policies
+                </p>
               </div>
             </section>
 
@@ -286,11 +304,11 @@ export default function TripSummary({
               </p>
             )}
 
-            <p className="mt-8 border-t border-gray-100 pt-4 text-xs text-gray-500">
+            <p className="mt-6 border-t border-gray-100 pt-4 text-xs text-gray-500">
               Flight times and availability can change. Check with the airline before you travel.
             </p>
 
-            {partnerLogos}
+            <PartnerStrip />
           </article>
 
           {/* Upsell (hidden on print) */}
@@ -313,8 +331,7 @@ export default function TripSummary({
     );
   }
 
-  // ---- Fallback path: preview from sessionStorage (no Duffel order available) ----
-
+  /* ---------- Fallback path: preview from sessionStorage ---------- */
   if (selections === undefined) return null;
   if (!selections) {
     return (
@@ -373,8 +390,8 @@ export default function TripSummary({
                   <tr>
                     <th className="px-4 py-3 font-semibold">Passenger</th>
                     <th className="px-4 py-3 font-semibold">Class</th>
-                    <th className="px-4 py-3 font-semibold">E-ticket No.</th>
-                    <th className="px-4 py-3 font-semibold">Airline Booking Reference</th>
+                    <th className="px-4 py-3 font-semibold">E-ticket no.</th>
+                    <th className="px-4 py-3 font-semibold">Airline booking reference</th>
                   </tr>
                 </thead>
                 <tbody className="text-gray-800">
@@ -444,18 +461,16 @@ export default function TripSummary({
             <p className="mt-2 text-sm text-gray-700">
               Please check the baggage information at the bottom for more details.
             </p>
-            <div className="mt-4 space-y-4 text-sm text-gray-800">
-              <div>
-                <p className="font-semibold">Adults</p>
-                <p className="mt-1">
-                  <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for
-                  detailed baggage policies
-                </p>
-                <p className="mt-1">
-                  <span className="font-semibold">Checked baggage:</span> Please contact the airline for
-                  detailed baggage policies
-                </p>
-              </div>
+            <div className="mt-3 text-sm text-gray-800">
+              <p className="font-semibold">Adults</p>
+              <p className="mt-1">
+                <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for
+                detailed baggage policies
+              </p>
+              <p className="mt-1">
+                <span className="font-semibold">Checked baggage:</span> Please contact the airline for
+                detailed baggage policies
+              </p>
             </div>
           </section>
 
@@ -483,11 +498,11 @@ export default function TripSummary({
             </ul>
           </section>
 
-          <p className="mt-8 border-t border-gray-100 pt-4 text-xs text-gray-500">
+          <p className="mt-6 border-t border-gray-100 pt-4 text-xs text-gray-500">
             Flight times and availability can change. Check with the airline or hotel before you travel.
           </p>
 
-          {partnerLogos}
+          <PartnerStrip />
         </article>
 
         <div className="mt-6 rounded-2xl bg-navy-900 p-6 text-white md:flex md:items-center md:justify-between md:gap-6 print:hidden">
