@@ -24,11 +24,10 @@ export default function TripSummary({
       const saved = JSON.parse(sessionStorage.getItem(SELECTION_KEY) || "null");
       if (saved?.booking === encoded) {
         setSelections(saved.selections);
-        // Our own booking number — generated & persisted per selection
         const key = `trip:${encoded}:no`;
         let no = sessionStorage.getItem(key);
         if (!no) {
-          no = "TW" + Date.now().toString().slice(-12); // e.g. TW123456789012
+          no = "TW" + Date.now().toString().slice(-12);
           sessionStorage.setItem(key, no);
         }
         setBookingNo(no);
@@ -76,122 +75,116 @@ export default function TripSummary({
           </button>
         </div>
 
-        <article className="relative rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 md:p-10 print:rounded-none print:p-0 print:shadow-none print:ring-0">
-          {/* Watermark */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 flex items-center justify-center text-6xl font-bold uppercase tracking-widest text-gray-100 [transform:rotate(-30deg)] md:text-8xl print:text-gray-100"
-          >
-            Not a ticket
-          </div>
+        <article className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 md:p-10 print:rounded-none print:p-0 print:shadow-none print:ring-0">
+          {/* Header with logo + site name */}
+          <header className="flex items-center justify-between gap-4 border-b border-gray-200 pb-5">
+            <div className="flex items-center gap-3">
+              <LogoMark className="h-8 w-auto" />
+              <span className="font-semibold uppercase tracking-wide">{site.name}</span>
+            </div>
+            <span className="text-xs text-gray-500">Created {created}</span>
+          </header>
 
-          <div className="relative space-y-8">
-            {/* Header */}
-            <header className="flex items-center justify-between gap-4 border-b border-gray-200 pb-5">
-              <div className="flex items-center gap-3">
-                <LogoMark className="h-8 w-auto" />
-                <span className="font-semibold uppercase tracking-wide">{site.name}</span>
-              </div>
-              <span className="text-xs text-gray-500">Created {created}</span>
-            </header>
+          {/* Booking Information */}
+          <section className="mt-6">
+            <h1 className="text-lg font-bold text-navy-900">Booking Information</h1>
+            <p className="mt-2 text-sm text-gray-700">
+              We advise you print out your itinerary and take it with you to ensure your trip goes as smoothly
+              as possible.
+            </p>
 
-            {/* Booking information */}
-            <section>
-              <h1 className="text-2xl font-bold md:text-3xl">Trip Summary</h1>
-              <p className="mt-3 rounded-lg border-2 border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
-                For your own reference only. This is <strong>not a ticket, booking or reservation</strong>,
-                has no booking reference and cannot be used for travel or a visa application.
-              </p>
+            <p className="mt-4 text-sm font-semibold text-navy-900">
+              Booking No. {bookingNo || "—"}
+            </p>
 
-              <dl className="mt-6 grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-                <div>
-                  <dt className="text-gray-500">Booking No.</dt>
-                  <dd className="font-mono font-semibold text-navy-900">{bookingNo || "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Passenger</dt>
-                  <dd className="font-semibold text-navy-900">
-                    {/* pull from selections if present */}
-                    {/* e.g. (selections[0] as any).passengerName ?? "—" */}
-                    —
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Class</dt>
-                  <dd>Economy</dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">E-ticket No.</dt>
-                  <dd className="font-mono">xxx</dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Airline Booking Reference</dt>
-                  <dd className="font-mono">xxx</dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Service</dt>
-                  <dd className="capitalize">{booking.service}</dd>
-                </div>
-              </dl>
-            </section>
+            <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Passenger</th>
+                    <th className="px-4 py-3 font-semibold">Class</th>
+                    <th className="px-4 py-3 font-semibold">E-ticket No.</th>
+                    <th className="px-4 py-3 font-semibold">Airline Booking Reference</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-800">
+                  <tr className="border-t border-gray-100">
+                    <td className="px-4 py-3">—</td>
+                    <td className="px-4 py-3">Economy</td>
+                    <td className="px-4 py-3 font-mono">XXX</td>
+                    <td className="px-4 py-3 font-mono">XXX</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-            {/* Selected items */}
-            <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                {booking.service === "flight" ? "Selected flight" : "Selected hotels"}
-              </h2>
-              <div className="mt-3 space-y-5">
-                {selections.map((s) => (
-                  <ul key={s.ref} className="space-y-1.5 text-gray-800">
+          {/* Flight Information */}
+          <section className="mt-8">
+            <h2 className="text-lg font-bold text-navy-900">Flight Information</h2>
+            <div className="mt-3 space-y-5">
+              {selections.map((s) => (
+                <div key={s.ref} className="rounded-lg border border-gray-200 p-4">
+                  <ul className="space-y-1.5 text-sm text-gray-800">
                     {s.summary.map((l, i) => (
-                      <li key={i} className={i === 0 ? "text-lg font-semibold text-navy-900" : ""}>
+                      <li key={i} className={i === 0 ? "text-base font-semibold text-navy-900" : ""}>
                         {l}
                       </li>
                     ))}
                   </ul>
-                ))}
-              </div>
-            </section>
+                </div>
+              ))}
+            </div>
+          </section>
 
-            {/* Trip dates */}
-            <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Trip dates</h2>
-              <ul className="mt-3 space-y-1.5 text-gray-800">
-                {describeBooking(booking).map((l, i) => (
-                  <li key={l}>{i === 0 ? l.replace(" reservation", "") : l}</li>
-                ))}
-              </ul>
-            </section>
-
-            {/* Important information — mirrors the uploaded PDF */}
-            <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                Important information
-              </h2>
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-gray-700">
-                <li>
-                  Passengers should arrive at the airport at least <strong>2 hours before departure</strong> to
-                  ensure they have enough time to check in.
-                </li>
-                <li>
-                  During various procedures at the airport, passengers must provide the valid ID used to purchase
-                  their ticket. Their boarding pass or itinerary may also be required.
-                </li>
-                <li>
-                  Tickets must be used in the sequence set out in the itinerary, otherwise airlines reserve the
-                  right to refuse carriage.
-                </li>
-                <li>
-                  We suggest arriving at the airport at least <strong>3 hours prior</strong> to departure for
-                  international flights.
-                </li>
-              </ul>
-            </section>
-
-            <p className="border-t border-gray-100 pt-4 text-xs text-gray-500">
-              Flight times and availability can change. Check with the airline or hotel before you travel.
+          {/* Baggage Allowance */}
+          <section className="mt-8">
+            <h2 className="text-lg font-bold text-navy-900">Baggage Allowance</h2>
+            <p className="mt-2 text-sm text-gray-700">
+              Please check the baggage information at the bottom for more details.
             </p>
-          </div>
+            <div className="mt-4 space-y-4 text-sm text-gray-800">
+              <div>
+                <p className="font-semibold">Adults</p>
+                <p className="mt-1">
+                  <span className="font-semibold">Carry-on baggage:</span> Please contact the airline for detailed
+                  baggage policies
+                </p>
+                <p className="mt-1">
+                  <span className="font-semibold">Checked baggage:</span> 2 pieces per person. Dimensions (length +
+                  width + height) of each piece cannot exceed 158cm
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Important information */}
+          <section className="mt-8">
+            <h2 className="text-lg font-bold text-navy-900">Important information</h2>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-gray-700">
+              <li>
+                Passengers should arrive at the airport at least 2 hours before departure to ensure they have
+                enough time to check in.
+              </li>
+              <li>
+                During various procedures in the airport, passengers must provide the valid ID used to purchase
+                their ticket. Their boarding pass or itinerary may also be required.
+              </li>
+              <li>
+                Please note that tickets must be used in the sequence set out in the itinerary, otherwise airlines
+                reserve the right to refuse carriage. {site.name} bears no responsibility if passengers are unable
+                to board a plane due to not complying with airline policies and regulations.
+              </li>
+              <li>
+                We make the suggestion to arrive at the airport at least 3h prior to departure to ensure you have
+                enough time to check in.
+              </li>
+            </ul>
+          </section>
+
+          <p className="mt-8 border-t border-gray-100 pt-4 text-xs text-gray-500">
+            Flight times and availability can change. Check with the airline or hotel before you travel.
+          </p>
         </article>
 
         {/* Upsell (hidden on print) */}
