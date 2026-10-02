@@ -29,7 +29,28 @@ export type Traveler = {
 
 // What the customer picked from the live search results. `hold` is set for flights that can be
 // reserved automatically as a Duffel hold order.
-export type Selection = { ref: string; summary: string[]; hold?: { offerId: string; passengerIds: string[] } };
+// One leg of a flight (a takeoff + landing at two airports).
+export type FlightSegment = {
+  flightNumber: string;   // "QR629"
+  airline: string;        // "Qatar Airways"
+  from: string;           // "LHE"
+  fromName: string;       // "Allama Iqbal International Airport"
+  to: string;             // "DOH"
+  toName: string;         // "Hamad International Airport"
+  departAt: string;       // "2026-10-16T09:55:00"
+  arriveAt: string;       // "2026-10-16T11:50:00"
+  operatedBy?: string;    // operating carrier name, if codeshare
+};
+
+// What the customer picked from the live search results. `hold` is set for flights that can be
+// reserved automatically as a Duffel hold order. `segments` carries the per-leg detail used on
+// the printable trip summary.
+export type Selection = {
+  ref: string;
+  summary: string[];
+  segments?: FlightSegment[];
+  hold?: { offerId: string; passengerIds: string[] };
+};
 
 export type Order = {
   booking: BookingRequest;
