@@ -214,3 +214,94 @@ export async function createHoldOrder(opts: {
     paymentRequiredBy: data.payment_status?.payment_required_by ?? null,
   };
 }
+
+// ---- Full booking details (GET /air/orders/:id) ----
+
+type DCarrier = { name: string; iata_code: string; logo_symbol_url: string | null; logo_lockup_url: string | null };
+type DPlacePoint = { iata_code: string; name: string; city_name: string | null };
+type DOrder = {
+  id: string;
+  booking_reference: string;
+  cancelled_at: string | null;
+  owner: DCarrier;
+  passengers: { id: string; title: string; given_name: string; family_name: string }[];
+  payment_status: { awaiting_payment: boolean; payment_required_by: string | null };
+  documents: { type: string; unique_identifier: string }[];
+  slices: {
+    duration: string | null;
+    origin: DPlacePoint;
+    destination: DPlacePoint;
+    segments: {
+      departing_at: string;
+      arriving_at: string;
+      duration: string | null;
+      origin: DPlacePoint;
+      destination: DPlacePoint;
+      marketing_carrier: DCarrier;
+      marketing_carrier_flight_number: string;
+      operating_carrier: DCarrier;
+      aircraft: { name: string } | null;
+      passengers: { cabin_class: string; cabin_class_marketing_name: string | null }[];
+    }[];
+  }[];
+};
+
+const airport = (p: DPlacePoint) => ({ code: p.iata_code, name: p.name, city: p.city_name });
+
+// Minutes between two local times at the same airport (arrival of one flight, departure of the next).
+const minutesBetween = (a: string, b: string) => Math.round((Date.parse(b + "Z") - Date.parse(a + "Z")) / 60000);
+const hm = (min: number) => `${Math.floor(min / 60)}h ${min % 60}m`;
+
+export async function getOrderDetails(orderId: string) {
+  const { data: o } = await duffel<{ data: DOrder }>(`/air/orders/${encodeURIComponent(orderId)}`);
+
+  // The real state of the booking: a hold is never "Confirmed" until it's paid and ticketed.
+  const status = o.cancelled_at
+    ? "Cancelled"
+    : o.payment_status.awaiting_payment
+      ? "On hold (awaiting payment)"
+      : o.documents.some((d) => d.type === "electronic_ticket")
+        ? "Ticketed"
+        : "Paid";
+
+  const slices = o.slices.map((s) => ({
+    from: airport(s.origin),
+    to: airport(s.destination),
+    date: s.segments[0].departing_at.slice(0, 10),
+    duration: formatDuration(s.duration),
+    flights: s.segments.map((g, i) => ({
+      airline: g.marketing_carrier.name,
+      airlineCode: g.marketing_carrier.iata_code,
+      logoSymbol: g.marketing_carrier.logo_symbol_url,
+      logoLockup: g.marketing_carrier.logo_lockup_url,
+      operatedBy: g.operating_carrier.name,
+      flightNumber: `${g.marketing_carrier.iata_code}${g.marketing_carrier_flight_number}`,
+      from: airport(g.origin),
+      to: airport(g.destination),
+      departDate: g.departing_at.slice(0, 10),
+      departTime: g.departing_at.slice(11, 16),
+      arriveDate: g.arriving_at.slice(0, 10),
+      arriveTime: g.arriving_at.slice(11, 16),
+      duration: formatDuration(g.duration),
+      cabinClass: g.passengers[0]?.cabin_class_marketing_name || g.passengers[0]?.cabin_class || null,
+      aircraft: g.aircraft?.name ?? null,
+      // Wait at this airport before the next flight of the same journey
+      connection:
+        i < s.segments.length - 1
+          ? { airport: airport(g.destination), wait: hm(minutesBetween(g.arriving_at, s.segments[i + 1].departing_at)) }
+          : null,
+    })),
+  }));
+
+  return {
+    orderId: o.id,
+    airlineBookingReference: o.booking_reference,
+    status,
+    payBy: o.payment_status.payment_required_by,
+    airline: { name: o.owner.name, code: o.owner.iata_code, logoSymbol: o.owner.logo_symbol_url, logoLockup: o.owner.logo_lockup_url },
+    passengers: o.passengers.map((p) => `${p.title.toUpperCase()} ${p.given_name} ${p.family_name}`.trim()),
+    tripDate: slices[0]?.date ?? null,
+    destination: slices[0]?.to ?? null,
+    slices,
+  };
+}
