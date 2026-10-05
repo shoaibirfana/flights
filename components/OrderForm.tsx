@@ -6,7 +6,7 @@ import type { BookingRequest, Selection, Traveler } from "@/lib/booking";
 import { BOOKING_REF_KEY } from "./BookingReference";
 import { SELECTION_KEY } from "./SearchResults";
 
-const emptyTraveler = (): Traveler => ({ title: "Mr", firstName: "", lastName: "", nationality: "" });
+const emptyTraveler = (): Traveler => ({ firstName: "", lastName: "" });
 
 export default function OrderForm({
   booking,
@@ -24,7 +24,6 @@ export default function OrderForm({
   );
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,7 +50,7 @@ export default function OrderForm({
       const res = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking, selections, travelers, contact: { email, phone, notes } }),
+        body: JSON.stringify({ booking, selections, travelers, contact: { email, phone } }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
@@ -120,16 +119,8 @@ export default function OrderForm({
         <div key={i} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
           <h3 className="mb-4 font-semibold">Traveler {i + 1}</h3>
           <div className="grid gap-4 md:grid-cols-12">
-            <div className="md:col-span-2">
-              <label className="label">Title</label>
-              <select className="input" value={t.title} onChange={(e) => update(i, { title: e.target.value })}>
-                {["Mr", "Mrs", "Ms", "Miss", "Master"].map((x) => (
-                  <option key={x}>{x}</option>
-                ))}
-              </select>
-            </div>
-            <div className="md:col-span-5">
-              <label className="label">First / Given Name</label>
+            <div className="md:col-span-6">
+              <label className="label">First / Given Name (as on passport)</label>
               <input
                 required
                 className="input"
@@ -137,8 +128,8 @@ export default function OrderForm({
                 onChange={(e) => update(i, { firstName: e.target.value })}
               />
             </div>
-            <div className="md:col-span-5">
-              <label className="label">Last / Surname</label>
+            <div className="md:col-span-6">
+              <label className="label">Last / Surname (as on passport)</label>
               <input
                 required
                 className="input"
@@ -146,19 +137,9 @@ export default function OrderForm({
                 onChange={(e) => update(i, { lastName: e.target.value })}
               />
             </div>
-            <div className="md:col-span-6">
-              <label className="label">Nationality</label>
-              <input
-                required
-                className="input"
-                placeholder="e.g. Pakistani"
-                value={t.nationality}
-                onChange={(e) => update(i, { nationality: e.target.value })}
-              />
-            </div>
             {needsHoldDetails && (
               <>
-                <div className="md:col-span-3">
+                <div className="md:col-span-6">
                   <label className="label">Date of Birth</label>
                   <input
                     required
@@ -169,7 +150,7 @@ export default function OrderForm({
                     onChange={(e) => update(i, { bornOn: e.target.value })}
                   />
                 </div>
-                <div className="md:col-span-3">
+                <div className="md:col-span-6">
                   <label className="label">Gender</label>
                   <select
                     required
@@ -196,7 +177,7 @@ export default function OrderForm({
             <input required type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div>
-            <label className="label">Phone / WhatsApp</label>
+            <label className="label">Phone / WhatsApp (the airline needs it)</label>
             <input
               required
               type="tel"
@@ -204,16 +185,6 @@ export default function OrderForm({
               placeholder="+92 3xx xxxxxxx"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="label">Notes (optional)</label>
-            <textarea
-              rows={3}
-              className="input"
-              placeholder="Preferred airline, visa appointment date, anything else we should know"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
             />
           </div>
         </div>

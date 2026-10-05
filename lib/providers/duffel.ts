@@ -210,7 +210,8 @@ export async function createHoldOrder(opts: {
         selected_offers: [opts.offerId],
         passengers: opts.travelers.map((t, i) => ({
           id: opts.passengerIds[i],
-          title: TITLES[t.title] ?? "mr",
+          // No title field on the form: Mr for male, Ms for female
+          title: (t.title && TITLES[t.title]) || (t.gender === "f" ? "ms" : "mr"),
           gender: t.gender,
           given_name: t.firstName,
           family_name: t.lastName,

@@ -18,10 +18,11 @@ export type BookingRequest = {
 };
 
 export type Traveler = {
-  title: string;
   firstName: string;
   lastName: string;
-  nationality: string;
+  // Older orders only; the form no longer asks for these
+  title?: string;
+  nationality?: string;
   // Required by airlines for a real booking (Duffel hold orders)
   bornOn?: string;
   gender?: "m" | "f";
@@ -56,7 +57,7 @@ export type Order = {
   booking: BookingRequest;
   selections: Selection[];
   travelers: Traveler[];
-  contact: { email: string; phone: string; notes: string };
+  contact: { email: string; phone: string; notes?: string };
 };
 
 export function encodeBooking(b: BookingRequest): string {

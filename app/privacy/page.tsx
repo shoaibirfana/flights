@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         </p>
         <h2>Information we collect</h2>
         <p>
-          We collect the traveler names, nationality, email address, phone number and trip details you give us when
+          We collect the traveler names, dates of birth, gender, email address, phone number and trip details you give us when
           you place an order.
         </p>
         <h2>How we use it</h2>

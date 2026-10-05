@@ -38,16 +38,14 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
     const bornOn = clean(t?.bornOn, 10);
     const gender = t?.gender === "m" || t?.gender === "f" ? t.gender : undefined;
     return {
-      title: clean(t?.title, 10),
       firstName: clean(t?.firstName),
       lastName: clean(t?.lastName),
-      nationality: clean(t?.nationality, 60),
       ...(/^\d{4}-\d{2}-\d{2}$/.test(bornOn) ? { bornOn } : {}),
       ...(gender ? { gender } : {}),
     };
   });
-  if (travelers.some((t) => !t.firstName || !t.lastName || !t.nationality)) {
-    return { error: "Please fill in the name and nationality for every traveler." };
+  if (travelers.some((t) => !t.firstName || !t.lastName)) {
+    return { error: "Please fill in the name of every traveler." };
   }
   const hold = selections.find((s) => s.hold)?.hold;
   if (hold) {
@@ -58,7 +56,7 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
   }
 
   const c = (body.contact || {}) as Record<string, unknown>;
-  const contact = { email: clean(c.email, 200), phone: clean(c.phone, 40), notes: clean(c.notes, 1000) };
+  const contact = { email: clean(c.email, 200), phone: clean(c.phone, 40) };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) return { error: "Please enter a valid email address." };
   if (contact.phone.replace(/\D/g, "").length < 7) return { error: "Please enter a valid phone number." };
 
@@ -75,7 +73,10 @@ export function orderSummaryText(orderId: string, order: Order, total: number): 
     "Selected:",
     ...order.selections.flatMap((s) => [...s.summary.map((l) => `  ${l}`), `  Ref: ${s.ref}`, ""]),
     "Travelers:",
-    ...order.travelers.map((t, i) => `  ${i + 1}. ${t.title} ${t.firstName} ${t.lastName} (${t.nationality})`),
+    ...order.travelers.map(
+      (t, i) =>
+        `  ${i + 1}. ${t.firstName} ${t.lastName}${t.gender ? `, ${t.gender === "f" ? "female" : "male"}` : ""}${t.bornOn ? `, born ${t.bornOn}` : ""}`,
+    ),
     "",
     `Email: ${order.contact.email}`,
     `Phone: ${order.contact.phone}`,
