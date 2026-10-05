@@ -169,7 +169,7 @@ function SegmentCard({ seg }: { seg: Seg }) {
               Flight number: <b>{airlineCode} - {flightNumOnly}</b>
             </div>
             <div>
-              Status: <b>On hold (awaiting payment)</b>
+              Status: <b>Confirmed</b>
             </div>
             {seg.operatedBy && seg.operatedBy !== seg.airline ? (
               <div>
