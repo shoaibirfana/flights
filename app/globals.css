@@ -85,13 +85,44 @@ body {
   }
 }
 @media print {
-  @page {
-    size: A4;
-    margin: 12mm 10mm;
-  }
-  html, body {
+  @page { size: A4; margin: 8mm; }
+
+  body { background: #fff !important; }
+
+  .itinerary-wrap {
     background: #fff !important;
+    padding: 0 !important;
+    overflow: visible !important;
   }
+  .itinerary-toolbar,
+  .itinerary-upsell,
   .print\:hidden { display: none !important; }
-  body { font-size: 11pt; color: #111; }
+
+  .itinerary-page {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .itinerary-card,
+  .itinerary-traveler,
+  .itinerary-partners {
+    width: 100% !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Force fixed columns under print too */
+  .itinerary-card-body {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+  }
+  .itinerary-col-left,
+  .itinerary-col-mid,
+  .itinerary-col-right {
+    flex-shrink: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
