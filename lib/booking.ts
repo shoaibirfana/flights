@@ -36,6 +36,7 @@ export type FlightSegment = {
   departAt: string;       // "2026-10-16T09:55:00"
   arriveAt: string;       // "2026-10-16T11:50:00"
   operatedBy?: string;    // operating carrier name, if codeshare
+  logo?: string | null;   // airline logo URL (from LiteAPI carrier.marketingLogo)
 };
 
 // What the customer picked from the live search results. `hold` is set for flights that can be
