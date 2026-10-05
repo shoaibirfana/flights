@@ -8,7 +8,7 @@ import {
 } from "@/lib/booking";
 import { site } from "@/lib/site";
 
-type OrderDetails = {
+ type OrderDetails = {
   orderId: string;
   airlineBookingReference: string;
   status: string;
@@ -16,10 +16,10 @@ type OrderDetails = {
   airline: { name: string; code: string; logoSymbol: string | null; logoLockup: string | null };
   passengers: string[];
   tripDate: string | null;
-  destination: { code: string; name: string; city: string } | null;
+  destination: { code: string; name: string; city: string | null } | null;
   slices: {
-    from: { code: string; name: string; city: string };
-    to: { code: string; name: string; city: string };
+    from: { code: string; name: string; city: string | null };
+    to: { code: string; name: string; city: string | null };
     date: string;
     duration: string;
     flights: {
@@ -29,8 +29,8 @@ type OrderDetails = {
       logoLockup: string | null;
       operatedBy: string;
       flightNumber: string;
-      from: { code: string; name: string; city: string };
-      to: { code: string; name: string; city: string };
+      from: { code: string; name: string; city: string | null };
+      to: { code: string; name: string; city: string | null };
       departDate: string;
       departTime: string;
       arriveDate: string;
@@ -38,7 +38,10 @@ type OrderDetails = {
       duration: string;
       cabinClass: string | null;
       aircraft: string | null;
-      connection: { airport: { code: string; name: string; city: string }; wait: string } | null;
+      connection: {
+        airport: { code: string; name: string; city: string | null };
+        wait: string;
+      } | null;
     }[];
   }[];
 };
