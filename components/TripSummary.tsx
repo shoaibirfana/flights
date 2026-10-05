@@ -8,7 +8,7 @@ import {
 } from "@/lib/booking";
 import { site } from "@/lib/site";
 
- type OrderDetails = {
+type OrderDetails = {
   orderId: string;
   airlineBookingReference: string;
   status: string;
@@ -271,21 +271,39 @@ export default function TripSummary({
 
   const segments: Seg[] = selections.flatMap((s) => (s.segments ?? []) as Seg[]);
 
-  const legs = booking.legs ?? [];
-  const legDests = legs.map((l) => l.toCode);
+  // Build the itinerary legs from the booking. For a round trip, `booking.legs` has only 1
+  // entry (the outbound) and the return is derived from `booking.returnDate` + swapping to/from.
+  type ItinLeg = { date: string; destCode: string; destLabel: string };
+  const legs: ItinLeg[] = [];
+  if (booking.tripType === "roundtrip" && booking.legs?.[0]) {
+    const l = booking.legs[0];
+    legs.push({ date: l.date, destCode: l.toCode, destLabel: l.to });
+    legs.push({
+      date: booking.returnDate ?? l.date,
+      destCode: l.fromCode,
+      destLabel: l.from,
+    });
+  } else if (booking.legs?.length) {
+    for (const l of booking.legs) {
+      legs.push({ date: l.date, destCode: l.toCode, destLabel: l.to });
+    }
+  }
+
+  // Group segments by leg: close a leg when the segment arrives at the leg's destination.
   const grouped: Seg[][] = [];
   let current: Seg[] = [];
   for (const seg of segments) {
     current.push(seg);
-    const target = legDests[grouped.length];
-    if (target && seg.to === target && grouped.length < legDests.length - 1) {
+    const leg = legs[grouped.length];
+    if (leg && seg.to === leg.destCode && grouped.length < legs.length - 1) {
       grouped.push(current);
       current = [];
     }
   }
   if (current.length) grouped.push(current);
 
-  const legTitles = legs.map((l) => ({ date: l.date, city: shortCity(l.to) }));
+  // Titles: one per leg.
+  const legTitles = legs.map((l) => ({ date: l.date, city: shortCity(l.destLabel) }));
 
   return (
     <>
