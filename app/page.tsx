@@ -22,13 +22,13 @@ const steps = [
   },
   {
     title: "Get Your Booking Reference",
-    text: "We reserve the flight with the airline and send you the real booking reference (PNR) by email.",
+    text: "We reserve your flight with the airline and email you the booking reference (PNR).",
     icon: "📩",
   },
 ];
 
 const reasons = [
-  "Real airline reservation, made instantly",
+  "Fast delivery of your booking reference by email",
   "Verifiable reservation with airline booking reference (PNR)",
   "Avoid transit in countries that require a transit visa",
   "Free date changes if your appointment or travel plan changes",
@@ -62,7 +62,7 @@ export default function Home() {
               From {formatPrice(pricing.flight)} per traveler
             </span>
             <h1 className="mt-4 text-3xl leading-tight font-bold md:text-5xl">
-              Flight Reservation for Visa with a Real Airline PNR
+              Flight Reservation for Visa with an Airline Booking Reference
             </h1>
             <p className="mt-4 text-base text-white/85 md:text-lg">
               Verifiable flight reservations for Schengen, UK, USA, Canada and other visa

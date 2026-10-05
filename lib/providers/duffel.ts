@@ -8,7 +8,9 @@ import { ProviderError } from "./liteapi";
 
 const API = process.env.DUFFEL_API_URL || "https://api.duffel.com";
 
-export const duffelEnabled = () => Boolean(process.env.DUFFEL_ACCESS_TOKEN?.trim());
+// FLIGHT_PROVIDER=liteapi switches flights back to LiteAPI even when a Duffel token is set.
+export const duffelEnabled = () =>
+  Boolean(process.env.DUFFEL_ACCESS_TOKEN?.trim()) && process.env.FLIGHT_PROVIDER?.trim().toLowerCase() !== "liteapi";
 
 async function duffel<T>(path: string, init?: RequestInit): Promise<T> {
   const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();

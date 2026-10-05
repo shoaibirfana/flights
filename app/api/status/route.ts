@@ -11,13 +11,14 @@ export async function GET() {
   const key = process.env.LITEAPI_KEY?.trim() ?? "";
   const status: Record<string, unknown> = {
     liteapiKey: key ? (key.startsWith("sand_") ? "set (sandbox)" : key.startsWith("prod_") ? "set (production)" : "set (unknown type)") : duffelEnabled() ? "not set (not needed: Duffel is used)" : "MISSING",
-    duffel: process.env.DUFFEL_ACCESS_TOKEN?.trim()
+    flightProvider: duffelEnabled() ? "Duffel (automatic hold bookings)" : "LiteAPI (search only: the team books each order manually)",
+    duffel: duffelEnabled()
       ? !duffelLive()
         ? "on (test mode): flights are reserved as hold orders"
         : holdsAllowed()
           ? "on (LIVE mode): every order creates a real airline booking (Duffel bills about $3 each)"
           : "on (LIVE mode, bookings off): live flight data, but orders don't create bookings until DUFFEL_LIVE_HOLDS=on"
-      : "off (flight orders are booked manually by the team)",
+      : "off",
     email: process.env.SMTP_HOST ? "configured" : "not configured (orders are only logged)",
     payments: process.env.STRIPE_SECRET_KEY?.trim()
       ? `on (${process.env.STRIPE_SECRET_KEY.trim().includes("_live_") ? "live" : "test"} mode)`

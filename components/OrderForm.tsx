@@ -177,7 +177,7 @@ export default function OrderForm({
             <input required type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div>
-            <label className="label">Phone / WhatsApp (the airline needs it)</label>
+            <label className="label">Phone / WhatsApp</label>
             <input
               required
               type="tel"

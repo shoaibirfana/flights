@@ -17,7 +17,7 @@ export default function AboutPage() {
         <h2>What we do</h2>
         <p>
           You search live flights, choose the option that fits your plans, and we reserve it with the
-          airline and email you the real booking reference (PNR) for your visa application.
+          airline and email you the booking reference (PNR) for your visa application.
         </p>
         <h2>Why travelers choose us</h2>
         <ul>
