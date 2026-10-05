@@ -75,7 +75,7 @@ function mapSegment(s: DSegment): FlightSegment {
     flightNumber: `${s.marketing_carrier.iata_code}${s.marketing_carrier_flight_number}`,
     carrier: s.marketing_carrier.name,
     operatedBy: s.operating_carrier.name,
-    logo: null,      
+    logo: null,
   };
 }
 
