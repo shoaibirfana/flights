@@ -136,49 +136,52 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
             <div className="flex justify-end md:w-32">
               <button
                 className="btn-primary !px-5 !py-2 text-sm"
-onClick={() =>
-  onSelect([
-    {
-      ref: o.provider === "duffel" ? `Duffel offer ${o.id}` : `LiteAPI flight offer ${o.id}`,
-      ...(o.provider === "duffel" && o.passengerIds
-        ? { hold: { offerId: o.id, passengerIds: o.passengerIds } }
-        : {}),
-      // What the customer sees: no flight numbers or times until the reservation is made
-      display: [
-        o.airline,
-        ...o.slices.map(
-          (s) =>
-            `${s.from} → ${s.to} on ${day(s.segments[0].departAt)}, ${
-              s.stops.length ? `${s.stops.length} ${s.stops.length === 1 ? "stop" : "stops"}` : "direct"
-            }`,
-        ),
-      ],
-      // Full details for the team (order email)
-      summary: [
-        `${o.airline}: ${o.slices.map((s) => s.segments.map((g) => g.flightNumber).join("+")).join(" / ")}`,
-        ...o.slices.map(
-          (s) =>
-            `${s.from} → ${s.to}  ${s.segments[0].departAt.replace("T", " ").slice(0, 16)}${
-              s.stops.length ? ` (via ${s.stops.join(", ")})` : ""
-            }`,
-        ),
-      ],
-      segments: o.slices.flatMap((s) =>
-        s.segments.map((g) => ({
-          flightNumber: g.flightNumber,
-          airline: o.airline,
-          from: g.from,
-          fromName: g.fromName,
-          to: g.to,
-          toName: g.toName,
-          departAt: g.departAt,
-          arriveAt: g.arriveAt,
-          operatedBy: g.operatedBy !== g.carrier ? g.operatedBy : undefined,
-        })),
-      ),
-    },
-  ])
-}
+                onClick={() =>
+                  onSelect([
+                    {
+                      ref: o.provider === "duffel" ? `Duffel offer ${o.id}` : `LiteAPI flight offer ${o.id}`,
+                      ...(o.provider === "duffel" && o.passengerIds
+                        ? { hold: { offerId: o.id, passengerIds: o.passengerIds } }
+                        : {}),
+                      // What the customer sees: no flight numbers or times until the reservation is made
+                      display: [
+                        o.airline,
+                        ...o.slices.map(
+                          (s) =>
+                            `${s.from} → ${s.to} on ${day(s.segments[0].departAt)}, ${
+                              s.stops.length ? `${s.stops.length} ${s.stops.length === 1 ? "stop" : "stops"}` : "direct"
+                            }`,
+                        ),
+                      ],
+                      // Full details for the team (order email)
+                      summary: [
+                        `${o.airline}: ${o.slices.map((s) => s.segments.map((g) => g.flightNumber).join("+")).join(" / ")}`,
+                        ...o.slices.map(
+                          (s) =>
+                            `${s.from} → ${s.to}  ${s.segments[0].departAt.replace("T", " ").slice(0, 16)}${
+                              s.stops.length ? ` (via ${s.stops.join(", ")})` : ""
+                            }`,
+                        ),
+                      ],
+                      // Full per-segment detail used by the printable trip summary.
+                      // `logo` is taken from the segment itself (each flight has its own airline logo).
+                      segments: o.slices.flatMap((s) =>
+                        s.segments.map((g) => ({
+                          flightNumber: g.flightNumber,
+                          airline: g.carrier,
+                          from: g.from,
+                          fromName: g.fromName,
+                          to: g.to,
+                          toName: g.toName,
+                          departAt: g.departAt,
+                          arriveAt: g.arriveAt,
+                          operatedBy: g.operatedBy !== g.carrier ? g.operatedBy : undefined,
+                          logo: g.logo ?? o.logo ?? null,
+                        })),
+                      ),
+                    },
+                  ])
+                }
               >
                 Select
               </button>
