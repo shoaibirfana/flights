@@ -7,6 +7,7 @@ import {
   type FlightSegment,
   type Selection,
 } from "@/lib/booking";
+import { randomAirlineReservationCode, randomReservationCode } from "@/lib/codes";
 import type { getOrderDetails } from "@/lib/providers/duffel";
 import { site } from "@/lib/site";
 import { LogoMark } from "./Logo";
@@ -168,6 +169,12 @@ export default function TripSummary({
 }) {
   const [selections, setSelections] = useState<Selection[] | null | undefined>(undefined);
   const [bookingNo, setBookingNo] = useState<string>("");
+
+  // Demo PNRs for the printable PDF — generated once per page load.
+  const [demoCodes] = useState(() => ({
+    reservation: randomReservationCode(),
+    airline: randomAirlineReservationCode(),
+  }));
 
   useEffect(() => {
     try {
@@ -446,11 +453,11 @@ export default function TripSummary({
                 <div className="right">
                   <div>Reservation Code</div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>
-                    {order.airlineBookingReference}
+                    {demoCodes.reservation}
                   </div>
                   <div style={{ marginTop: 6 }}>Airline Reservation Code</div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>
-                    {order.airlineBookingReference}
+                    {demoCodes.airline}
                   </div>
                 </div>
               </div>
@@ -571,8 +578,8 @@ export default function TripSummary({
                   <tr className="border-t border-gray-200">
                     <td className="px-4 py-3">—</td>
                     <td className="px-4 py-3 capitalize">{booking.cabin ?? "Economy"}</td>
-                    <td className="px-4 py-3 font-mono">XXX</td>
-                    <td className="px-4 py-3 font-mono">XXX</td>
+                    <td className="px-4 py-3 font-mono">{demoCodes.reservation}</td>
+                    <td className="px-4 py-3 font-mono">{demoCodes.airline}</td>
                   </tr>
                 </tbody>
               </table>
