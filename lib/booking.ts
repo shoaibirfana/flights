@@ -48,7 +48,10 @@ export type FlightSegment = {
 // the printable trip summary.
 export type Selection = {
   ref: string;
+  // Full details (flight numbers, times) for the team's order email
   summary: string[];
+  // Customer-facing lines without flight numbers or times
+  display?: string[];
   segments?: FlightSegment[];
   hold?: { offerId: string; passengerIds: string[] };
 };

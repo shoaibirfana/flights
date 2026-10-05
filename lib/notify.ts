@@ -1,4 +1,5 @@
 import { sendMail } from "./mailer";
+import { customerSummary } from "./orders";
 import { site } from "./site";
 
 // Sends the new-order email to the business and the confirmation to the customer.
@@ -12,6 +13,6 @@ export async function sendOrderEmails(orderId: string, summary: string, customer
   await sendMail(
     customerEmail,
     `We received your order ${orderId}`,
-    `Thank you for your order with ${site.name}.\n\nOur team will contact you shortly to confirm your reservation.\n\n${summary}\n\nQuestions? Reply to this email or contact us at ${site.email}.`,
+    `Thank you for your order with ${site.name}.\n\nOur team will contact you shortly to confirm your reservation.\n\n${customerSummary(summary)}\n\nQuestions? Reply to this email or contact us at ${site.email}.`,
   );
 }

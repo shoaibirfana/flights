@@ -8,7 +8,6 @@ import SearchLoader from "./SearchLoader";
 
 export const SELECTION_KEY = "booking-selections";
 
-const time = (iso: string) => iso.slice(11, 16);
 const day = (iso: string) =>
   new Date(iso.slice(0, 10) + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
@@ -65,7 +64,6 @@ function Status({
 
 function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelect: (s: Selection[]) => void }) {
   const { loading, error, offers } = useSearch<FlightOffer>("/api/flights", booking);
-  const [open, setOpen] = useState<string | null>(null);
   const [stops, setStops] = useState<"all" | 0 | 1 | 2>("all");
 
   const group = (o: FlightOffer) => Math.min(o.maxStops, 2);
@@ -118,10 +116,8 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                 return (
                   <div key={i} className="grid grid-cols-3 items-center gap-2 text-center">
                     <div>
-                      <div className="text-lg font-bold">{time(first.departAt)}</div>
-                      <div className="text-xs text-gray-500">
-                        {s.from} · {day(first.departAt)}
-                      </div>
+                      <div className="text-lg font-bold">{s.from}</div>
+                      <div className="text-xs text-gray-500">{day(first.departAt)}</div>
                     </div>
                     <div className="text-xs text-gray-500">
                       <div>{s.duration}</div>
@@ -133,10 +129,8 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                       </div>
                     </div>
                     <div>
-                      <div className="text-lg font-bold">{time(last.arriveAt)}</div>
-                      <div className="text-xs text-gray-500">
-                        {s.to} · {day(last.arriveAt)}
-                      </div>
+                      <div className="text-lg font-bold">{s.to}</div>
+                      <div className="text-xs text-gray-500">{day(last.arriveAt)}</div>
                     </div>
                   </div>
                 );
@@ -152,6 +146,17 @@ onClick={() =>
       ...(o.provider === "duffel" && o.passengerIds
         ? { hold: { offerId: o.id, passengerIds: o.passengerIds } }
         : {}),
+      // What the customer sees: no flight numbers or times until the reservation is made
+      display: [
+        o.airline,
+        ...o.slices.map(
+          (s) =>
+            `${s.from} → ${s.to} on ${day(s.segments[0].departAt)}, ${
+              s.stops.length ? `${s.stops.length} ${s.stops.length === 1 ? "stop" : "stops"}` : "direct"
+            }`,
+        ),
+      ],
+      // Full details for the team (order email)
       summary: [
         `${o.airline}: ${o.slices.map((s) => s.segments.map((g) => g.flightNumber).join("+")).join(" / ")}`,
         ...o.slices.map(
@@ -182,29 +187,6 @@ onClick={() =>
               </button>
             </div>
           </div>
-          <button
-            className="mt-3 text-xs font-medium text-brand-600 hover:underline"
-            onClick={() => setOpen(open === o.id ? null : o.id)}
-          >
-            {open === o.id ? "Hide details" : "Flight details"}
-          </button>
-          {open === o.id && (
-            <div className="mt-3 space-y-2 border-t border-gray-100 pt-3 text-sm text-gray-700">
-              {o.slices.flatMap((s) =>
-                s.segments.map((g) => (
-                  <div key={g.flightNumber + g.departAt} className="flex flex-wrap justify-between gap-2">
-                    <span>
-                      <strong>{g.flightNumber}</strong> {g.fromName} ({g.from}) → {g.toName} ({g.to})
-                    </span>
-                    <span className="text-gray-500">
-                      {g.departAt.replace("T", " ").slice(0, 16)} → {g.arriveAt.replace("T", " ").slice(0, 16)}
-                      {g.operatedBy !== g.carrier && ` · operated by ${g.operatedBy}`}
-                    </span>
-                  </div>
-                )),
-              )}
-            </div>
-          )}
         </div>
       ))}
     </div>

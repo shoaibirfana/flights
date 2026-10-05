@@ -25,6 +25,7 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
     return {
       ref: clean(s?.ref, 120),
       summary: Array.isArray(s?.summary) ? s.summary.slice(0, 20).map((l: unknown) => clean(l, 200)) : [],
+      ...(Array.isArray(s?.display) ? { display: s.display.slice(0, 10).map((l: unknown) => clean(l, 200)) } : {}),
       ...(/^off_[A-Za-z0-9]+$/.test(offerId) && passengerIds.length && passengerIds.every((p) => /^pas_[A-Za-z0-9]+$/.test(p))
         ? { hold: { offerId, passengerIds } }
         : {}),
@@ -64,6 +65,17 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
   return { order: { booking, selections, travelers, contact }, total: bookingPrice(booking) };
 }
 
+// The section between this header and "Travelers:" is left out of the customer's email.
+const TEAM_ONLY_HEADER = "Selected flight (team only, not sent to the customer):";
+
+export function customerSummary(summary: string): string {
+  const lines = summary.split("\n");
+  const start = lines.indexOf(TEAM_ONLY_HEADER);
+  if (start < 0) return summary;
+  const end = lines.indexOf("Travelers:", start);
+  return [...lines.slice(0, start), ...lines.slice(end < 0 ? lines.length : end)].join("\n");
+}
+
 export function orderSummaryText(orderId: string, order: Order, total: number): string {
   return [
     `Order ID: ${orderId}`,
@@ -71,7 +83,8 @@ export function orderSummaryText(orderId: string, order: Order, total: number): 
     "",
     ...describeBooking(order.booking),
     "",
-    "Selected:",
+    ...order.selections.flatMap((s) => (s.display?.length ? ["Flight:", ...s.display.map((l) => `  ${l}`), ""] : [])),
+    TEAM_ONLY_HEADER,
     ...order.selections.flatMap((s) => [...s.summary.map((l) => `  ${l}`), `  Ref: ${s.ref}`, ""]),
     "Travelers:",
     ...order.travelers.map(

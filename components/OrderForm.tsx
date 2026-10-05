@@ -100,7 +100,7 @@ export default function OrderForm({
         <div className="space-y-4">
           {selections.map((s) => (
             <ul key={s.ref} className="space-y-1 text-sm text-gray-700">
-              {s.summary.map((l, i) => (
+              {(s.display ?? s.summary).map((l, i) => (
                 <li key={i} className={i === 0 ? "font-semibold text-navy-900" : ""}>
                   {l}
                 </li>
@@ -108,12 +108,6 @@ export default function OrderForm({
             </ul>
           ))}
         </div>
-        <Link
-          href={`/order/summary?b=${encodeURIComponent(encoded)}`}
-          className="mt-4 inline-block text-sm font-medium text-brand-600 hover:underline"
-        >
-          Just want to remember your dates? View a free trip summary →
-        </Link>
       </div>
       {travelers.map((t, i) => (
         <div key={i} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
