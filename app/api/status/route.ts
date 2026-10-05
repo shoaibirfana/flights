@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAirports } from "@/lib/providers/liteapi-airports";
+import { duffelLive, holdsAllowed } from "@/lib/hold";
 import { duffelEnabled, searchDuffelAirports } from "@/lib/providers/duffel";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,11 @@ export async function GET() {
   const status: Record<string, unknown> = {
     liteapiKey: key ? (key.startsWith("sand_") ? "set (sandbox)" : key.startsWith("prod_") ? "set (production)" : "set (unknown type)") : duffelEnabled() ? "not set (not needed: Duffel is used)" : "MISSING",
     duffel: process.env.DUFFEL_ACCESS_TOKEN?.trim()
-      ? `on (${process.env.DUFFEL_ACCESS_TOKEN.trim().startsWith("duffel_live_") ? "live" : "test"} mode): flights are reserved as hold orders`
+      ? !duffelLive()
+        ? "on (test mode): flights are reserved as hold orders"
+        : holdsAllowed()
+          ? "on (LIVE mode): every order creates a real airline booking (Duffel bills about $3 each)"
+          : "on (LIVE mode, bookings off): live flight data, but orders don't create bookings until DUFFEL_LIVE_HOLDS=on"
       : "off (flight orders are booked manually by the team)",
     email: process.env.SMTP_HOST ? "configured" : "not configured (orders are only logged)",
     payments: process.env.STRIPE_SECRET_KEY?.trim()

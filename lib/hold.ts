@@ -10,7 +10,13 @@ export type HoldRequest = {
   phone: string;
 };
 
+// With a live Duffel token every hold is a real airline booking that Duffel bills for, so live holds
+// stay off until DUFFEL_LIVE_HOLDS=on (searches still use live data). Test tokens always hold.
+export const duffelLive = () => Boolean(process.env.DUFFEL_ACCESS_TOKEN?.trim().startsWith("duffel_live_"));
+export const holdsAllowed = () => !duffelLive() || process.env.DUFFEL_LIVE_HOLDS?.trim().toLowerCase() === "on";
+
 export function holdRequestFor(order: Order): HoldRequest | null {
+  if (!holdsAllowed()) return null;
   const hold = order.selections.find((s) => s.hold)?.hold;
   if (!hold) return null;
   return {
