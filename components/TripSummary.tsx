@@ -6,17 +6,55 @@ import {
   type BookingRequest,
   type Selection,
 } from "@/lib/booking";
-import { randomAirlineReservationCode, randomReservationCode } from "@/lib/codes";
-import type { getOrderDetails } from "@/lib/providers/duffel";
 import { site } from "@/lib/site";
-import { LogoMark } from "./Logo";
-import { SELECTION_KEY } from "./SearchResults";
 
-type OrderDetails = Awaited<ReturnType<typeof getOrderDetails>>;
+type OrderDetails = {
+  orderId: string;
+  airlineBookingReference: string;
+  status: string;
+  payBy: string | null;
+  airline: { name: string; code: string; logoSymbol: string | null; logoLockup: string | null };
+  passengers: string[];
+  tripDate: string | null;
+  destination: { code: string; name: string; city: string } | null;
+  slices: {
+    from: { code: string; name: string; city: string };
+    to: { code: string; name: string; city: string };
+    date: string;
+    duration: string;
+    flights: {
+      airline: string;
+      airlineCode: string;
+      logoSymbol: string | null;
+      logoLockup: string | null;
+      operatedBy: string;
+      flightNumber: string;
+      from: { code: string; name: string; city: string };
+      to: { code: string; name: string; city: string };
+      departDate: string;
+      departTime: string;
+      arriveDate: string;
+      arriveTime: string;
+      duration: string;
+      cabinClass: string | null;
+      aircraft: string | null;
+      connection: { airport: { code: string; name: string; city: string }; wait: string } | null;
+    }[];
+  }[];
+};
 
 const BORDER = "#d4d4d4";
 const GREY_PANEL = "#cccccc";
 const TEXT = "#222222";
+
+// --- random code helpers, self-contained ---
+const ALPHANUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const DIGITS = "0123456789";
+const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const pick = (a: string, n: number) =>
+  Array.from({ length: n }, () => a[Math.floor(Math.random() * a.length)]).join("");
+const randomReservationCode = () => pick(ALPHANUM, 6);
+const randomAirlineReservationCode = () => pick(DIGITS, 13) + pick(ALPHA, 1) + pick(DIGITS, 1);
 
 const nameLines = (name: string): string[] => {
   const words = (name || "").split(/\s+/).filter(Boolean);
@@ -27,7 +65,6 @@ const nameLines = (name: string): string[] => {
   return out.slice(0, 3);
 };
 
-/** "Karachi (KHI) - Jinnah International Airport, Pakistan" → "Karachi (KHI)" */
 const shortCity = (label: string): string => {
   const dash = label.indexOf(" - ");
   return (dash > 0 ? label.slice(0, dash) : label).trim();
@@ -38,7 +75,7 @@ const timeOf = (iso: string) => (iso || "").slice(11, 16);
 
 const MEALS = ["Drinks and quality", "products offered", "for sale"];
 
-type Seg = NonNullable<Selection["segments"]>[number];
+type Seg = NonNullable<Selection["segments"]>[number] & { logo?: string | null };
 
 function PartnerStrip() {
   return (
@@ -78,13 +115,11 @@ function AirlineLogo({ code, src }: { code: string; src?: string | null }) {
         alt=""
         style={{ width: 154, height: 44, objectFit: "contain" }}
         onError={(e) => {
-          // If the URL fails to load, hide the image — the code badge below will show.
           e.currentTarget.style.display = "none";
         }}
       />
     );
   }
-  // Fallback: a small colored box with the airline's IATA code
   return (
     <div
       style={{
@@ -122,7 +157,7 @@ function SegmentCard({ seg }: { seg: Seg }) {
 
       <div className="itinerary-card-body">
         <div className="itinerary-col-left">
-          <AirlineLogo code={airlineCode} src={seg.logo} />
+          <AirlineLogo code={airlineCode} src={seg.logo ?? null} />
           <div style={{ marginTop: 12, fontSize: 14, fontWeight: 700, textAlign: "center" }}>
             {airlineLabel}
           </div>
@@ -196,15 +231,13 @@ export default function TripSummary({
   booking,
   encoded,
   price,
-  order: _order,
 }: {
   booking: BookingRequest;
   encoded: string;
   price: string;
-  order: OrderDetails | null;
+  order?: OrderDetails | null;
 }) {
   const [selections, setSelections] = useState<Selection[] | null | undefined>(undefined);
-
   const [demoCodes] = useState(() => ({
     reservation: randomReservationCode(),
     airline: randomAirlineReservationCode(),
@@ -212,7 +245,7 @@ export default function TripSummary({
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(sessionStorage.getItem(SELECTION_KEY) || "null");
+      const saved = JSON.parse(sessionStorage.getItem("booking-selections") || "null");
       setSelections(saved?.booking === encoded ? saved.selections : null);
     } catch {
       setSelections(null);
@@ -233,9 +266,8 @@ export default function TripSummary({
     );
   }
 
-  const segments: Seg[] = selections.flatMap((s) => s.segments ?? []);
+  const segments: Seg[] = selections.flatMap((s) => (s.segments ?? []) as Seg[]);
 
-  // Group segments by leg: walk segments and close a leg when we hit its destination.
   const legs = booking.legs ?? [];
   const legDests = legs.map((l) => l.toCode);
   const grouped: Seg[][] = [];
@@ -250,11 +282,7 @@ export default function TripSummary({
   }
   if (current.length) grouped.push(current);
 
-  // Leg titles: "Karachi (KHI)" for outbound, "Lahore (LHE)" for return.
-  const legTitles = legs.map((l) => ({
-    date: l.date,
-    city: shortCity(l.to),
-  }));
+  const legTitles = legs.map((l) => ({ date: l.date, city: shortCity(l.to) }));
 
   return (
     <>
