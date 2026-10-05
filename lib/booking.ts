@@ -1,8 +1,7 @@
-import { calculatePrice, hotelBookingEnabled, type ServiceType, type TripType } from "./site";
+import { calculatePrice, type ServiceType, type TripType } from "./site";
 
 // `from`/`to` are display labels; `fromCode`/`toCode` are IATA airport or city codes.
 export type FlightLeg = { from: string; fromCode: string; to: string; toCode: string; date: string };
-export type HotelStay = { city: string; countryCode: string; checkIn: string; checkOut: string };
 
 export type BookingRequest = {
   service: ServiceType;
@@ -13,8 +12,6 @@ export type BookingRequest = {
   returnDate?: string;
   cabin?: "economy" | "business";
   excludeTransit?: string[];
-  // hotel
-  hotels?: HotelStay[];
 };
 
 export type Traveler = {
@@ -28,8 +25,6 @@ export type Traveler = {
   gender?: "m" | "f";
 };
 
-// What the customer picked from the live search results. `hold` is set for flights that can be
-// reserved automatically as a Duffel hold order.
 // One leg of a flight (a takeoff + landing at two airports).
 export type FlightSegment = {
   flightNumber: string;   // "QR629"
@@ -119,25 +114,6 @@ export function validateBooking(input: unknown): BookingRequest | null {
     };
   }
 
-  if (b.service === "hotel" && hotelBookingEnabled) {
-    const hotels = Array.isArray(b.hotels)
-      ? b.hotels.slice(0, 10).map((h: Record<string, unknown>) => ({
-          city: str(h?.city),
-          countryCode: str(h?.countryCode, 2).toUpperCase(),
-          checkIn: str(h?.checkIn, 10),
-          checkOut: str(h?.checkOut, 10),
-        }))
-      : [];
-    if (
-      hotels.length === 0 ||
-      hotels.some(
-        (h) =>
-          !h.city || !/^[A-Z]{2}$/.test(h.countryCode) || !isDate(h.checkIn) || !isDate(h.checkOut) || h.checkOut <= h.checkIn,
-      )
-    )
-      return null;
-    return { service: "hotel", travelers, hotels };
-  }
   return null;
 }
 
@@ -150,7 +126,6 @@ export function bookingPrice(b: BookingRequest): number {
     service: b.service,
     travelers: b.travelers,
     legs: b.tripType === "roundtrip" ? 2 : b.legs?.length,
-    cities: b.hotels?.length,
   });
 }
 
@@ -163,16 +138,13 @@ const tripLabels: Record<TripType, string> = {
 // Plain-text summary used on the order page and in emails.
 export function describeBooking(b: BookingRequest): string[] {
   const lines: string[] = [];
-  if (b.service === "flight") {
+  {
     lines.push(`Flight reservation (${tripLabels[b.tripType!]}, ${b.cabin === "business" ? "Business" : "Economy"})`);
     b.legs!.forEach((l, i) =>
       lines.push(`${b.legs!.length > 1 ? `Flight ${i + 1}: ` : ""}${l.fromCode} → ${l.toCode} on ${l.date}`),
     );
     if (b.tripType === "roundtrip") lines.push(`Return: ${b.legs![0].toCode} → ${b.legs![0].fromCode} on ${b.returnDate}`);
     if (b.excludeTransit?.length) lines.push(`Avoid transit via: ${b.excludeTransit.join(", ")}`);
-  } else {
-    lines.push("Hotel reservation");
-    b.hotels!.forEach((h) => lines.push(`${h.city}, ${h.countryCode}: ${h.checkIn} to ${h.checkOut}`));
   }
   lines.push(`Travelers: ${b.travelers}`);
   return lines;

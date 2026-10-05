@@ -60,7 +60,7 @@ export default async function SuccessPage({
 
   return (
     <div className="mx-auto max-w-xl px-4 py-24 text-center">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-600">✓</div>
+      <div className="pop-in mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-600">✓</div>
       <h1 className="mt-6 text-3xl font-bold">{payment === "paid" ? "Payment received!" : "Order Received!"}</h1>
       {orderId && (
         <p className="mt-3 text-gray-700">

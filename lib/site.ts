@@ -22,27 +22,17 @@ export const pricing = {
   flight: 1,
   // Extra per traveler for every multi-city leg beyond the second
   extraFlightLeg: 0,
-  // Price per traveler for one hotel (one city)
-  hotel: 1,
 };
 
-// Hotel booking is switched off: the site sells flight reservations only.
-export const hotelBookingEnabled = false;
-
-export type ServiceType = "flight" | "hotel";
+export type ServiceType = "flight";
 export type TripType = "oneway" | "roundtrip" | "multicity";
 
 export function calculatePrice(opts: {
   service: ServiceType;
   travelers: number;
   legs?: number;
-  cities?: number;
 }): number {
   const travelers = Math.max(1, Math.min(10, Math.floor(opts.travelers || 1)));
-  if (opts.service === "hotel") {
-    const cities = Math.max(1, Math.min(10, Math.floor(opts.cities || 1)));
-    return pricing.hotel * cities * travelers;
-  }
   const legs = Math.max(1, Math.min(6, Math.floor(opts.legs || 1)));
   const extraLegs = Math.max(0, legs - 2);
   return (pricing.flight + extraLegs * pricing.extraFlightLeg) * travelers;

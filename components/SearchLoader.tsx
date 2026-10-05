@@ -2,28 +2,18 @@
 
 import { useEffect, useState } from "react";
 
-const steps: Record<"flights" | "hotels", string[]> = {
-  flights: [
-    "Connecting to airlines",
-    "Checking live schedules",
-    "Comparing routes",
-    "Finding direct flights",
-    "Organizing your options",
-    "Almost ready",
-  ],
-  hotels: [
-    "Connecting to hotels",
-    "Checking availability",
-    "Comparing rooms",
-    "Organizing your options",
-    "Almost ready",
-  ],
-};
+const messages = [
+  "Connecting to airlines",
+  "Checking live schedules",
+  "Comparing routes",
+  "Finding direct flights",
+  "Organizing your options",
+  "Almost ready",
+];
 
 // Calm, setup-style loading: one short message at a time and a thin progress line that eases toward
 // the end without claiming to finish (the real finish is the results appearing).
-export default function SearchLoader({ what }: { what: "flights" | "hotels" }) {
-  const messages = steps[what];
+export default function SearchLoader() {
   const [step, setStep] = useState(0);
   const [progress, setProgress] = useState(4);
 
@@ -35,7 +25,7 @@ export default function SearchLoader({ what }: { what: "flights" | "hotels" }) {
       setProgress(4 + 88 * (1 - Math.exp(-t / 9)));
     }, 200);
     return () => clearInterval(timer);
-  }, [messages.length]);
+  }, []);
 
   return (
     <div className="flex flex-col items-center rounded-2xl bg-white px-6 py-16 text-center shadow-sm" role="status" aria-live="polite">

@@ -15,9 +15,8 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
   const booking = validateBooking(body.booking);
   if (!booking) return { error: "Booking details are invalid. Please start again." };
 
-  const expected = booking.service === "hotel" ? booking.hotels!.length : 1;
   const rawSelections = Array.isArray(body.selections) ? body.selections : [];
-  if (rawSelections.length !== expected) return { error: "Please select your flight or hotel first." };
+  if (rawSelections.length !== 1) return { error: "Please select your flight first." };
   const selections: Selection[] = rawSelections.map((s: Record<string, unknown>) => {
     const h = s?.hold as Record<string, unknown> | undefined;
     const offerId = clean(h?.offerId, 80);
@@ -31,7 +30,7 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
         : {}),
     };
   });
-  if (selections.some((s) => !s.ref)) return { error: "Please select your flight or hotel first." };
+  if (selections.some((s) => !s.ref)) return { error: "Please select your flight first." };
 
   const rawTravelers = Array.isArray(body.travelers) ? body.travelers : [];
   if (rawTravelers.length !== booking.travelers) return { error: "Please enter details for every traveler." };

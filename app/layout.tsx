@@ -23,6 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        <noscript>
+          <style>{".reveal{opacity:1!important;transform:none!important}"}</style>
+        </noscript>
       </head>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <Header />

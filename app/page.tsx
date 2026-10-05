@@ -1,221 +1,308 @@
 import Link from "next/link";
 import BookingForm from "@/components/BookingForm";
+import Icon, { type IconName } from "@/components/Icon";
 import { LogoMark } from "@/components/Logo";
+import Reveal from "@/components/Reveal";
+import SectionHeading from "@/components/SectionHeading";
 import { faqs } from "@/lib/faqs";
 import { formatPrice, pricing, site } from "@/lib/site";
 
-const steps = [
+const steps: { title: string; text: string; icon: IconName }[] = [
   {
-    title: "Search Your Flight",
-    text: "Enter your route and dates. We show live flights with real schedules and availability.",
-    icon: "🔎",
+    title: "Search your flight",
+    text: "Enter your route and dates. We show live flights from real airlines.",
+    icon: "search",
   },
   {
-    title: "Select Your Option",
-    text: "Compare the results and pick the flight that matches your travel plan.",
-    icon: "✅",
+    title: "Choose an option",
+    text: "Pick the airline and route that match your travel plan and visa appointment.",
+    icon: "route",
   },
   {
-    title: "Submit Traveler Details",
-    text: "Enter each traveler's name exactly as it appears on the passport, plus your contact details.",
-    icon: "🧾",
+    title: "Add traveler names",
+    text: "Enter each name exactly as it appears on the passport, plus your email.",
+    icon: "user",
   },
   {
-    title: "Get Your Booking Reference",
+    title: "Get your reference",
     text: "We reserve your flight with the airline and email you the booking reference (PNR).",
-    icon: "📩",
+    icon: "mail",
   },
 ];
 
-const reasons = [
-  "Fast delivery of your booking reference by email",
-  "Verifiable reservation with airline booking reference (PNR)",
-  "Avoid transit in countries that require a transit visa",
-  "Free date changes if your appointment or travel plan changes",
-  "No need to buy an expensive non-refundable ticket before your visa is approved",
-  "Support by email",
+const features: { title: string; text: string; icon: IconName }[] = [
+  {
+    title: "Verifiable booking reference",
+    text: "Every reservation comes with an airline booking reference (PNR) that can be checked while it's valid.",
+    icon: "shield",
+  },
+  {
+    title: "Delivered by email",
+    text: "Your booking reference arrives by email, ready to add to your visa application.",
+    icon: "clock",
+  },
+  {
+    title: "No expensive ticket",
+    text: "Don't buy a non-refundable ticket before your visa is approved. A reservation costs a fraction of it.",
+    icon: "wallet",
+  },
+  {
+    title: "Avoid transit visas",
+    text: "Exclude countries like the USA, UK or Schengen area so your route needs no transit visa.",
+    icon: "globe",
+  },
+  {
+    title: "Free date changes",
+    text: "Appointment moved? Send us your order ID and new dates and we update the reservation.",
+    icon: "refresh",
+  },
+  {
+    title: "Real people, quick help",
+    text: "Questions about your reservation? Reply to your confirmation email and we'll help.",
+    icon: "chat",
+  },
 ];
 
-function HeroArt() {
+const trust = ["Live airline data", "Any destination", "Email delivery", `From ${formatPrice(pricing.flight)}`];
+
+function HeroBackdrop() {
   return (
-    <svg viewBox="0 0 1440 220" className="pointer-events-none absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="none" aria-hidden>
-      <path fill="#ffffff" fillOpacity="0.08" d="M0 120c240-60 480-60 720 0s480 60 720 0v100H0z" />
-      <path fill="#ffffff" fillOpacity="0.12" d="M0 160c200-40 440-40 720 10s520 40 720-10v60H0z" />
-      <path fill="#ffffff" d="M0 190c260-30 520-30 720 0s460 30 720 0v30H0z" />
-    </svg>
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <div className="float-slow absolute -top-24 -left-24 h-96 w-96 rounded-full bg-white/5 blur-2xl" />
+      <div className="float-slow absolute top-40 -right-32 h-[28rem] w-[28rem] rounded-full bg-cream/10 blur-3xl" style={{ animationDelay: "-4s" }} />
+      <svg viewBox="0 0 1440 320" className="absolute inset-x-0 top-24 w-full opacity-40" preserveAspectRatio="none">
+        <path
+          className="flight-path"
+          d="M -40 210 C 260 40, 620 40, 1000 150 S 1400 120, 1500 60"
+          fill="none"
+          stroke="#f3e2d4"
+          strokeWidth="2"
+        />
+      </svg>
+      <div className="absolute inset-x-0 top-24 h-[320px] w-full">
+        <div className="flight-plane absolute top-0 left-0 text-cream">
+          <Icon name="plane" className="h-7 w-7 rotate-45" />
+        </div>
+      </div>
+      <svg viewBox="0 0 1440 120" className="absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="none">
+        <path fill="#ffffff" d="M0 80c240-40 480-40 720 0s480 40 720 0v40H0z" />
+      </svg>
+    </div>
   );
 }
 
 export default function Home() {
   return (
     <>
-      {/* Hero + booking form */}
-      <section id="book" className="relative overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-brand-500 pb-40">
+      {/* Hero + search */}
+      <section id="book" className="relative scroll-mt-16 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-500 pb-32">
+        <HeroBackdrop />
         <LogoMark
-          className="pointer-events-none absolute top-14 right-8 hidden h-48 w-auto opacity-10 lg:block"
+          className="pointer-events-none absolute top-16 right-10 hidden h-44 w-auto opacity-[0.07] lg:block"
           color="#f3e2d4"
           accent="#17313e"
         />
         <div className="relative z-10 mx-auto max-w-7xl px-4 pt-14 md:pt-20">
-          <div className="mx-auto max-w-3xl text-center text-white">
-            <span className="inline-block rounded-full bg-cream px-4 py-1 text-xs font-medium tracking-wide text-navy-900 uppercase">
-              From {formatPrice(pricing.flight)} per traveler
+          <div className="hero-in mx-auto max-w-3xl text-center text-white">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-medium tracking-wide text-cream ring-1 ring-white/15 backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Flight reservations for visa applications
             </span>
-            <h1 className="mt-4 text-3xl leading-tight font-bold md:text-5xl">
-              Flight Reservation for Visa with an Airline Booking Reference
+            <h1 className="mt-6 text-4xl leading-[1.1] font-bold tracking-tight md:text-6xl">
+              Your visa flight reservation, <span className="text-cream">without buying a ticket</span>
             </h1>
-            <p className="mt-4 text-base text-white/85 md:text-lg">
-              Verifiable flight reservations for Schengen, UK, USA, Canada and other visa
-              applications, without buying a full ticket.
+            <p className="mx-auto mt-5 max-w-2xl text-base text-white/80 md:text-lg">
+              Search live flights, choose your route and get an airline booking reference for Schengen, UK, USA,
+              Canada and other visa applications.
             </p>
+            <ul className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-white/80">
+              {trust.map((t) => (
+                <li key={t} className="flex items-center gap-1.5">
+                  <Icon name="check" className="h-4 w-4 text-emerald-300" />
+                  {t}
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="mx-auto mt-10 max-w-5xl">
-            <BookingForm />
+          <div className="hero-in hero-late mx-auto mt-10 max-w-5xl">
+            <div>
+              <BookingForm />
+            </div>
           </div>
         </div>
-        <HeroArt />
       </section>
 
       {/* How it works */}
-      <section className="mx-auto max-w-7xl px-4 py-20">
-        <h2 className="text-center text-2xl font-bold md:text-4xl">How To Book a Flight Reservation for Your Visa</h2>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mx-auto max-w-7xl px-4 py-24">
+        <SectionHeading
+          eyebrow="How it works"
+          title="Four steps to your reservation"
+          intro="No account, no ticket purchase. Just your route, the traveler names and an email address."
+        />
+        <ol className="relative mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((s, i) => (
-            <div key={s.title} className="relative rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <div className="mb-4 flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 font-bold text-white">
-                  {i + 1}
-                </span>
-                <span className="text-3xl">{s.icon}</span>
+            <Reveal as="li" key={s.title} delay={i * 100}>
+              <div className="card-lift h-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-cream">
+                    <Icon name={s.icon} className="h-6 w-6" />
+                  </span>
+                  <span className="text-4xl font-bold text-brand-100">0{i + 1}</span>
+                </div>
+                <h3 className="mt-5 text-lg font-semibold">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-gray-600">{s.text}</p>
               </div>
-              <h3 className="text-lg font-semibold">{s.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">{s.text}</p>
-            </div>
+            </Reveal>
           ))}
-        </div>
+        </ol>
       </section>
 
-      {/* What is */}
+      {/* Features */}
       <section className="bg-brand-50">
-        <div className="mx-auto max-w-4xl px-4 py-20">
-          <div>
-            <h2 className="text-2xl font-bold md:text-3xl">What Is a Flight Reservation for Visa?</h2>
-            <p className="mt-4 leading-relaxed text-gray-700">
-              A flight reservation for a visa is a temporary airline booking that shows your planned travel. Embassies
-              and consulates ask for it to check your travel plans before they issue a visa. It includes your name,
-              flight numbers, dates and a booking reference (PNR). You don&apos;t have to pay for a full,
-              non-refundable ticket.
-            </p>
-            <p className="mt-4 leading-relaxed text-gray-700">
-              Many embassies recommend <strong>not</strong> buying a ticket until your visa is approved. That
-              includes the Schengen countries, the UK, Canada and Australia. A reservation meets the requirement at a
-              small fraction of the cost.
-            </p>
+        <div className="mx-auto max-w-7xl px-4 py-24">
+          <SectionHeading
+            eyebrow={`Why ${site.name}`}
+            title="Everything your visa application needs"
+            intro="Embassies ask for proof of your travel plans. We make that part quick and affordable."
+          />
+          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((f, i) => (
+              <Reveal key={f.title} delay={(i % 3) * 100}>
+                <div className="card-lift h-full rounded-2xl bg-white p-7 ring-1 ring-brand-100">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600 ring-1 ring-brand-100">
+                    <Icon name={f.icon} />
+                  </span>
+                  <h3 className="mt-5 font-semibold">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-600">{f.text}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Why us */}
-      <section className="mx-auto max-w-7xl px-4 py-20">
-        <div className="grid items-center gap-12 md:grid-cols-2">
-          <div>
-            <h2 className="text-2xl font-bold md:text-4xl">
-              Why Do I Need a Flight Reservation for My Visa Application?
-            </h2>
-            <p className="mt-5 leading-relaxed text-gray-700">
-              If you plan to travel abroad, you may need a visa from the embassy of the country you&apos;re visiting.
-              Most visa applications ask for proof of your travel plans, usually a flight itinerary. With {site.name},
-              you can get a real flight reservation quickly for any destination.
-            </p>
+      {/* Explainer */}
+      <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 md:grid-cols-2">
+        <Reveal>
+          <p className="text-xs font-semibold tracking-[0.2em] text-brand-500 uppercase">Good to know</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">What is a flight reservation for a visa?</h2>
+          <p className="mt-5 leading-relaxed text-gray-700">
+            It&apos;s an airline booking that shows your planned travel: your name, flights, dates and a booking
+            reference (PNR). Embassies and consulates use it to check your travel plans before issuing a visa, and
+            you don&apos;t have to pay for a full ticket.
+          </p>
+          <p className="mt-4 leading-relaxed text-gray-700">
+            Many embassies, including the Schengen countries, the UK, Canada and Australia, advise{" "}
+            <strong>not</strong> buying a ticket until your visa is approved.
+          </p>
+        </Reveal>
+        <Reveal delay={150}>
+          <div className="relative overflow-hidden rounded-3xl bg-navy-900 p-8 text-white shadow-xl">
+            <LogoMark className="absolute -right-6 -bottom-6 h-40 w-auto opacity-10" color="#f3e2d4" accent="#17313e" />
+            <div className="grid grid-cols-3 gap-3 text-xs tracking-wide text-white/50 uppercase">
+              <span />
+              <span>Reservation</span>
+              <span>Ticket</span>
+            </div>
+            <ul className="mt-5 space-y-4 text-sm">
+              {[
+                ["Price", `From ${formatPrice(pricing.flight)}`, "Full fare, often non-refundable"],
+                ["If the visa is refused", "Nothing more to pay", "Money may be lost"],
+                ["Booking reference", "Yes", "Yes"],
+                ["Can be used to fly", "No", "Yes"],
+              ].map(([label, ours, ticket]) => (
+                <li key={label} className="grid grid-cols-3 gap-3 border-t border-white/10 pt-4">
+                  <span className="text-white/60">{label}</span>
+                  <span className="font-semibold text-cream">{ours}</span>
+                  <span className="text-white/70">{ticket}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="space-y-4">
-            {reasons.map((r) => (
-              <li key={r} className="flex items-start gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs text-white">
-                  ✓
-                </span>
-                <span className="text-gray-800">{r}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        </Reveal>
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="scroll-mt-20 bg-navy-900 py-20 text-white">
-        <div className="mx-auto max-w-md px-4">
-          <h2 className="text-center text-2xl font-bold md:text-4xl">Pricing &amp; Plans</h2>
-          <p className="mt-3 text-center text-gray-300">Simple, transparent pricing with no hidden fees.</p>
-          <div className="mt-12">
-            {[
-              {
-                name: "Flight Reservation",
-                price: pricing.flight,
-                features: [
-                  "One-way or round-trip",
-                  "Verifiable airline PNR",
-                  "No fee to change date",
+      <section id="pricing" className="relative scroll-mt-20 overflow-hidden bg-navy-900 py-24 text-white">
+        <div className="float-slow pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-brand-500/40 blur-3xl" />
+        <div className="relative mx-auto max-w-7xl px-4">
+          <SectionHeading eyebrow="Pricing" title="One simple price" intro="No hidden fees. Pay per traveler." light />
+          <Reveal className="mx-auto mt-12 max-w-md">
+            <div className="rounded-3xl bg-white p-8 text-navy-900 shadow-2xl ring-1 ring-white/10">
+              <h3 className="text-lg font-semibold">Flight reservation</h3>
+              <div className="mt-4 flex items-end gap-2">
+                <span className="text-6xl font-bold tracking-tight text-brand-600">{formatPrice(pricing.flight)}</span>
+                <span className="mb-2 text-sm text-gray-500">per traveler</span>
+              </div>
+              <ul className="mt-8 space-y-3 text-sm">
+                {[
+                  "One-way, round-trip or multi-city",
+                  "Airline booking reference (PNR)",
+                  "Free date changes",
                   pricing.extraFlightLeg > 0
                     ? `Multi-city: +${formatPrice(pricing.extraFlightLeg)} per extra flight`
                     : "Multi-city at no extra cost",
-                ],
-                href: "/#book",
-              },
-            ].map((p) => (
-              <div key={p.name} className="rounded-2xl bg-white p-8 text-navy-900 shadow-xl">
-                <h3 className="text-xl font-semibold">{p.name}</h3>
-                <div className="mt-4 flex items-end gap-1">
-                  <span className="text-5xl font-bold text-brand-600">{formatPrice(p.price)}</span>
-                  <span className="mb-1 text-sm text-gray-500">/ per person or child</span>
-                </div>
-                <ul className="mt-6 space-y-3 text-sm">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2">
-                      <span className="text-brand-600">✓</span> {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link href={p.href} className="btn-primary mt-8 w-full">
-                  Get Started
-                </Link>
-              </div>
-            ))}
-          </div>
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-3">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                      <Icon name="check" className="h-3.5 w-3.5" />
+                    </span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/#book" className="btn-primary group mt-8 w-full">
+                Get started
+                <Icon name="arrow" className="h-4 w-4 transition group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
 
       {/* FAQ preview */}
-      <section className="mx-auto max-w-4xl px-4 py-20">
-        <h2 className="text-center text-2xl font-bold md:text-4xl">Frequently Asked Questions</h2>
-        <div className="mt-10 space-y-3">
-          {faqs.slice(0, 5).map((f) => (
-            <details key={f.q} className="group rounded-xl border border-gray-200 bg-white p-5 open:shadow-sm">
-              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
-                {f.q}
-                <span className="ml-4 text-brand-600 transition group-open:rotate-45">+</span>
-              </summary>
-              <p className="mt-3 leading-relaxed text-gray-700">{f.a}</p>
-            </details>
+      <section className="mx-auto max-w-3xl px-4 py-24">
+        <SectionHeading eyebrow="FAQ" title="Questions, answered" />
+        <div className="mt-12 space-y-3">
+          {faqs.slice(0, 5).map((f, i) => (
+            <Reveal key={f.q} delay={i * 60}>
+              <details className="faq group rounded-2xl border border-gray-200 bg-white p-5 transition open:border-brand-200 open:shadow-sm">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
+                  {f.q}
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 transition group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 leading-relaxed text-gray-700">{f.a}</p>
+              </details>
+            </Reveal>
           ))}
         </div>
-        <div className="mt-8 text-center">
+        <div className="mt-10 text-center">
           <Link href="/faq" className="btn-outline">
             Read the full FAQ
           </Link>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="px-4 pb-20">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 rounded-3xl bg-gradient-to-r from-brand-700 to-brand-500 p-10 text-white md:flex-row">
-          <div>
-            <h2 className="text-2xl font-bold md:text-3xl">Ready to apply for your visa?</h2>
-            <p className="mt-2 text-white/85">Get your flight reservation today.</p>
+      {/* Call to action */}
+      <section className="px-4 pb-24">
+        <Reveal className="mx-auto max-w-6xl">
+          <div className="relative flex flex-col items-center justify-between gap-6 overflow-hidden rounded-3xl bg-gradient-to-r from-brand-700 to-brand-500 p-10 text-white md:flex-row md:p-14">
+            <LogoMark className="absolute -top-8 right-40 h-48 w-auto opacity-10" color="#f3e2d4" accent="#17313e" />
+            <div className="relative">
+              <h2 className="text-2xl font-bold md:text-3xl">Ready for your visa application?</h2>
+              <p className="mt-2 text-white/80">Search your flight and get your reservation today.</p>
+            </div>
+            <Link
+              href="/#book"
+              className="group relative inline-flex items-center gap-2 rounded-xl bg-cream px-8 py-3.5 font-semibold text-navy-900 transition hover:bg-white"
+            >
+              Search flights
+              <Icon name="arrow" className="h-4 w-4 transition group-hover:translate-x-1" />
+            </Link>
           </div>
-          <Link href="/#book" className="rounded-lg bg-white px-8 py-3 font-semibold text-brand-700 hover:bg-brand-50">
-            Book Now
-          </Link>
-        </div>
+        </Reveal>
       </section>
     </>
   );

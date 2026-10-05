@@ -44,7 +44,7 @@ export async function createCheckout(opts: {
 }): Promise<string> {
   const stripe = getStripe()!;
   const { orderId, order, total } = opts;
-  const service = order.booking.service === "flight" ? "Flight" : "Hotel";
+  const service = "Flight";
   const travelers = order.booking.travelers;
   const session = await stripe.checkout.sessions.create({
     mode: "payment",

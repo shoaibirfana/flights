@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { BOOKING_REF_KEY } from "./BookingReference";
 import { SELECTION_KEY } from "./SearchResults";
 
-// Links to the free trip summary for the flight/hotel picked in this browser tab, if there is one.
+// Links to the free trip summary for the flight picked in this browser tab, if there is one.
 export default function TripSummaryLink() {
   const [encoded, setEncoded] = useState<string | null>(null);
   const [duffelOrderId, setDuffelOrderId] = useState<string | null>(null);

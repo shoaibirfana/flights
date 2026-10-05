@@ -1,11 +1,11 @@
 # Visa Flight Reservation Website
 
 A Next.js website for selling flight reservations for visa applications. Customers search **live**
-flights, select one, enter traveler details and get a real airline booking reference (PNR) on hold.
+flights, select one and enter the traveler names and email. Orders are emailed to the team, which
+sends the booking reference (or Duffel creates a hold with a PNR automatically, when enabled).
 
 ## Features
 - Flight search: one-way, round trip, multi-city, cabin class, up to 9 travelers, exclude transit countries
-- Hotel search code is still in the repo but switched off (`hotelBookingEnabled` in `lib/site.ts`)
 - Live airport/city autocomplete
 - Order form → email to the business + confirmation email to the customer
 - Pages: Home, About, FAQ, Contact, Terms, Privacy, Refund Policy
@@ -14,7 +14,8 @@ flights, select one, enter traveler details and get a real airline booking refer
 ## Live data providers
 | Data | Provider | Env var |
 |------|----------|---------|
-| Flights, hotels, airport list | [LiteAPI / Nuitee Connect](https://liteapi.travel) | `LITEAPI_KEY` |
+| Flights, airport list | [LiteAPI / Nuitee Connect](https://liteapi.travel) | `LITEAPI_KEY` |
+| Flight holds with a real PNR (optional) | [Duffel](https://duffel.com) | `DUFFEL_ACCESS_TOKEN` |
 
 Airport city names come from the [OpenFlights](https://openflights.org/data) airport database
 (ODbL) and [OurAirports](https://ourairports.com/data) (public domain), stored in

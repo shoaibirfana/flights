@@ -1,5 +1,5 @@
 // LiteAPI (Nuitee Connect) client: https://docs.liteapi.travel
-// One API key covers hotels, flights and reference data. Sandbox and production share the
+// One API key covers flights and reference data. Sandbox and production share the
 // same host; the key decides the environment.
 
 export const LITEAPI_BASE = process.env.LITEAPI_BASE_URL || "https://api.liteapi.travel/v3.0";

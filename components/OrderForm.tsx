@@ -28,7 +28,7 @@ export default function OrderForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // The flight/hotel picked on the results page is kept in sessionStorage for this booking.
+  // The flight picked on the results page is kept in sessionStorage for this booking.
   useEffect(() => {
     try {
       const saved = JSON.parse(sessionStorage.getItem(SELECTION_KEY) || "null");

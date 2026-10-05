@@ -3,16 +3,12 @@
 import { useEffect, useState } from "react";
 import type { BookingRequest, Selection } from "@/lib/booking";
 import type { FlightOffer } from "@/lib/providers/liteapi-flights";
-import type { HotelOffer } from "@/lib/providers/liteapi-hotels";
 import SearchLoader from "./SearchLoader";
 
 export const SELECTION_KEY = "booking-selections";
 
 const day = (iso: string) =>
   new Date(iso.slice(0, 10) + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-
-const money = (amount: number | string, currency: string) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency }).format(Number(amount));
 
 function useSearch<T>(url: string, body: unknown) {
   const [state, setState] = useState<{ loading: boolean; error: string; offers: T[] }>({
@@ -43,20 +39,17 @@ function Status({
   loading,
   error,
   empty,
-  what,
 }: {
   loading: boolean;
   error: string;
   empty: boolean;
-  what: "flights" | "hotels";
 }) {
-  if (loading)
-    return <SearchLoader what={what} />;
+  if (loading) return <SearchLoader />;
   if (error) return <div className="rounded-2xl bg-red-50 p-6 text-red-700">{error}</div>;
   if (empty)
     return (
       <div className="rounded-2xl bg-white p-8 text-center text-gray-600 shadow-sm">
-        No {what} found for this search. Try different dates or nearby airports/cities.
+        No flights found for this search. Try different dates or nearby airports.
       </div>
     );
   return null;
@@ -77,7 +70,7 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
 
   return (
     <div className="space-y-4">
-      <Status loading={loading} error={error} empty={offers.length === 0} what="flights" />
+      <Status loading={loading} error={error} empty={offers.length === 0} />
       {!loading && offers.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           {filters.map((f) => (
@@ -95,8 +88,12 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
           <span className="ml-auto text-sm text-gray-500">Direct flights first</span>
         </div>
       )}
-      {shown.map((o) => (
-        <div key={o.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+      {shown.map((o, i) => (
+        <div
+          key={o.id}
+          className="result-in card-lift rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100"
+          style={{ animationDelay: `${Math.min(i, 10) * 50}ms` }}
+        >
           <div className="flex flex-col gap-5 md:flex-row md:items-center">
             <div className="flex items-center gap-3 md:w-48">
               {o.logo ? (
@@ -193,82 +190,7 @@ onClick={() =>
   );
 }
 
-function HotelCityResults({
-  booking,
-  index,
-  selected,
-  onSelect,
-}: {
-  booking: BookingRequest;
-  index: number;
-  selected: Selection | undefined;
-  onSelect: (s: Selection) => void;
-}) {
-  const stay = booking.hotels![index];
-  const { loading, error, offers } = useSearch<HotelOffer>("/api/hotels", { booking, index });
-
-  return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-bold">
-        Hotels in {stay.city} <span className="text-sm font-normal text-gray-500">({stay.checkIn} to {stay.checkOut})</span>
-      </h2>
-      <Status loading={loading} error={error} empty={offers.length === 0} what="hotels" />
-      <div className="grid gap-4 md:grid-cols-2">
-        {offers.map((h) => {
-          const isSelected = selected?.ref === `LiteAPI hotel ${h.id}`;
-          return (
-            <div
-              key={h.id}
-              className={`flex gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ${isSelected ? "ring-2 ring-brand-600" : "ring-gray-100"}`}
-            >
-              {h.photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={h.photo} alt="" className="h-28 w-28 shrink-0 rounded-lg object-cover" />
-              ) : (
-                <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-3xl">🏨</div>
-              )}
-              <div className="flex min-w-0 flex-1 flex-col">
-                <h3 className="font-semibold">{h.name}</h3>
-                {h.stars ? <div className="text-xs text-amber-500">{"★".repeat(Math.round(h.stars))}</div> : null}
-                <p className="truncate text-xs text-gray-500">{h.address}</p>
-                <p className="mt-1 text-xs text-gray-600">
-                  {h.roomName}
-                  {h.board && ` · ${h.board}`}
-                </p>
-                <div className="mt-auto flex items-end justify-between pt-2">
-                  <div>
-                    <div className="text-xs text-gray-500">Hotel rate (total)</div>
-                    <div className="font-semibold">{money(h.price, h.currency)}</div>
-                  </div>
-                  <button
-                    className={isSelected ? "btn-outline !px-4 !py-1.5 text-sm" : "btn-primary !px-4 !py-1.5 text-sm"}
-                    onClick={() =>
-                      onSelect({
-                        ref: `LiteAPI hotel ${h.id}`,
-                        summary: [
-                          `${h.name}${h.stars ? ` (${h.stars}★)` : ""}`,
-                          h.address,
-                          `${stay.city}: ${stay.checkIn} to ${stay.checkOut}, ${h.roomName}`,
-                          `Hotel rate: ${money(h.price, h.currency)}`,
-                        ],
-                      })
-                    }
-                  >
-                    {isSelected ? "Selected ✓" : "Select"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 export default function SearchResults({ booking, encoded }: { booking: BookingRequest; encoded: string }) {
-  const [hotelPicks, setHotelPicks] = useState<(Selection | undefined)[]>([]);
-
   const proceed = (selections: Selection[]) => {
     try {
       sessionStorage.setItem(SELECTION_KEY, JSON.stringify({ booking: encoded, selections }));
@@ -278,42 +200,5 @@ export default function SearchResults({ booking, encoded }: { booking: BookingRe
     window.location.assign(`/order?b=${encodeURIComponent(encoded)}`);
   };
 
-  if (booking.service === "flight") return <FlightResults booking={booking} onSelect={proceed} />;
-
-  const cities = booking.hotels!.length;
-  const allPicked = Array.from({ length: cities }, (_, i) => hotelPicks[i]).every(Boolean);
-  return (
-    <div className="space-y-10 pb-24">
-      {booking.hotels!.map((_, i) => (
-        <HotelCityResults
-          key={i}
-          booking={booking}
-          index={i}
-          selected={hotelPicks[i]}
-          onSelect={(s) => {
-            const next = [...hotelPicks];
-            next[i] = s;
-            setHotelPicks(next);
-            if (cities === 1) proceed([s]);
-          }}
-        />
-      ))}
-      {cities > 1 && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white p-4">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 pr-16">
-            <span className="text-sm text-gray-600">
-              {hotelPicks.filter(Boolean).length} of {cities} hotels selected
-            </span>
-            <button
-              className="btn-primary"
-              disabled={!allPicked}
-              onClick={() => proceed(hotelPicks as Selection[])}
-            >
-              Continue →
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <FlightResults booking={booking} onSelect={proceed} />;
 }
