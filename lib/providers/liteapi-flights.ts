@@ -36,6 +36,7 @@ export type FlightSegment = {
   flightNumber: string;
   carrier: string;
   operatedBy: string;
+  logo: string | null;   // ← per-segment airline logo URL (LiteAPI carrier.marketingLogo)
 };
 
 export type FlightSlice = { from: string; to: string; duration: string; stops: string[]; segments: FlightSegment[] };
@@ -88,6 +89,7 @@ function mapSegment(s: LiteSegment): FlightSegment {
     flightNumber: num.startsWith(code) ? num : `${code}${num}`,
     carrier: s.carrier?.marketingName ?? code,
     operatedBy: s.carrier?.operatingName ?? s.carrier?.marketingName ?? code,
+    logo: s.carrier?.marketingLogo ?? null,
   };
 }
 
