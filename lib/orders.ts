@@ -58,7 +58,8 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
   const c = (body.contact || {}) as Record<string, unknown>;
   const contact = { email: clean(c.email, 200), phone: clean(c.phone, 40) };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) return { error: "Please enter a valid email address." };
-  if (contact.phone.replace(/\D/g, "").length < 7) return { error: "Please enter a valid phone number." };
+  // Only Duffel bookings need a phone number (the airline requires one)
+  if (hold && contact.phone.replace(/\D/g, "").length < 7) return { error: "Please enter a valid phone number." };
 
   return { order: { booking, selections, travelers, contact }, total: bookingPrice(booking) };
 }
@@ -79,7 +80,7 @@ export function orderSummaryText(orderId: string, order: Order, total: number): 
     ),
     "",
     `Email: ${order.contact.email}`,
-    `Phone: ${order.contact.phone}`,
+    ...(order.contact.phone ? [`Phone: ${order.contact.phone}`] : []),
     ...(order.contact.notes ? [`Notes: ${order.contact.notes}`] : []),
   ].join("\n");
 }

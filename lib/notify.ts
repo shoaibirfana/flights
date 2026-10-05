@@ -4,7 +4,7 @@ import { site } from "./site";
 // Sends the new-order email to the business and the confirmation to the customer.
 export async function sendOrderEmails(orderId: string, summary: string, customerEmail: string, service: string) {
   await sendMail(
-    process.env.ORDER_NOTIFY_EMAIL || site.email,
+    process.env.ORDER_NOTIFY_EMAIL?.trim() || site.orderEmail,
     `New order ${orderId}: ${service} reservation`,
     summary,
     customerEmail,

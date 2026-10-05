@@ -176,17 +176,19 @@ export default function OrderForm({
             <label className="label">Email (we send your booking reference here)</label>
             <input required type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          <div>
-            <label className="label">Phone / WhatsApp</label>
-            <input
-              required
-              type="tel"
-              className="input"
-              placeholder="+92 3xx xxxxxxx"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
+          {needsHoldDetails && (
+            <div>
+              <label className="label">Phone / WhatsApp</label>
+              <input
+                required
+                type="tel"
+                className="input"
+                placeholder="+92 3xx xxxxxxx"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+          )}
         </div>
         <label className="mt-4 flex items-start gap-2 text-sm text-gray-700">
           <input type="checkbox" className="mt-1 accent-brand-600" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
