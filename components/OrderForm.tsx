@@ -8,6 +8,9 @@ import { SELECTION_KEY } from "./SearchResults";
 
 const emptyTraveler = (): Traveler => ({ firstName: "", lastName: "" });
 
+// Traveler names for this booking, read by the trip summary page.
+export const TRAVELERS_KEY = "booking-travelers";
+
 export default function OrderForm({
   booking,
   encoded,
@@ -46,6 +49,11 @@ export default function OrderForm({
     setError("");
     if (!agree) return setError("Please accept the Terms & Conditions to continue.");
     setLoading(true);
+    try {
+      sessionStorage.setItem(TRAVELERS_KEY, JSON.stringify({ booking: encoded, travelers }));
+    } catch {
+      // Storage unavailable; the trip summary will show no names.
+    }
     try {
       const res = await fetch("/api/order", {
         method: "POST",
