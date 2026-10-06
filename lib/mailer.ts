@@ -13,10 +13,13 @@ function transport() {
 }
 
 // Sends an email if SMTP is configured; otherwise logs it so orders are never silently lost.
-export async function sendMail(to: string, subject: string, text: string, replyTo?: string) {
+export type Attachment = { filename: string; content: Uint8Array; contentType: string };
+
+export async function sendMail(to: string, subject: string, text: string, replyTo?: string, attachments?: Attachment[]) {
   const t = transport();
   if (!t) {
-    console.log(`[mail disabled] To: ${to}\nSubject: ${subject}\n\n${text}`);
+    const files = attachments?.length ? `\n[attachments: ${attachments.map((a) => a.filename).join(", ")}]` : "";
+    console.log(`[mail disabled] To: ${to}\nSubject: ${subject}\n\n${text}${files}`);
     return;
   }
   await t.sendMail({
@@ -25,5 +28,6 @@ export async function sendMail(to: string, subject: string, text: string, replyT
     subject,
     text,
     replyTo,
+    attachments: attachments?.map((a) => ({ ...a, content: Buffer.from(a.content) })),
   });
 }

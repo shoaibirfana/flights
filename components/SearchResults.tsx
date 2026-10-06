@@ -9,6 +9,8 @@ export const SELECTION_KEY = "booking-selections";
 
 const day = (iso: string) =>
   new Date(iso.slice(0, 10) + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+// Airport-local time from the ISO string ("2026-10-16T09:55:00" → "09:55")
+const time = (iso: string) => iso.slice(11, 16);
 
 function useSearch<T>(url: string, body: unknown) {
   const [state, setState] = useState<{ loading: boolean; error: string; offers: T[] }>({
@@ -114,6 +116,7 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                   <div key={i} className="grid grid-cols-3 items-center gap-2 text-center">
                     <div>
                       <div className="text-lg font-bold">{s.from}</div>
+                      <div className="text-base font-semibold text-navy-900">{time(first.departAt)}</div>
                       <div className="text-xs text-gray-500">{day(first.departAt)}</div>
                     </div>
                     <div className="text-xs text-gray-500">
@@ -127,6 +130,7 @@ function FlightResults({ booking, onSelect }: { booking: BookingRequest; onSelec
                     </div>
                     <div>
                       <div className="text-lg font-bold">{s.to}</div>
+                      <div className="text-base font-semibold text-navy-900">{time(last.arriveAt)}</div>
                       <div className="text-xs text-gray-500">{day(last.arriveAt)}</div>
                     </div>
                   </div>

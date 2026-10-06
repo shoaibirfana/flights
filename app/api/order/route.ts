@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { encodeBooking } from "@/lib/booking";
 import { holdRequestFor, holdSummary, placeHold } from "@/lib/hold";
+import { itineraryFor } from "@/lib/itinerary-pdf";
 import { sendOrderEmails } from "@/lib/notify";
 import { newOrderId, orderSummaryText, validateOrder } from "@/lib/orders";
 import { createCheckout, paymentsEnabled } from "@/lib/payments";
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    await sendOrderEmails(orderId, holdText + summary, order.contact.email, order.booking.service);
+    await sendOrderEmails(orderId, holdText + summary, order.contact.email, order.booking.service, itineraryFor(order), pnr);
   } catch (e) {
     console.error("Order email failed", e, summary);
     return NextResponse.json({ error: "We couldn't submit your order right now. Please try again." }, { status: 500 });
