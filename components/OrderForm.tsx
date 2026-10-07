@@ -6,6 +6,8 @@ import type { BookingRequest, Selection, Traveler } from "@/lib/booking";
 import { BOOKING_REF_KEY } from "./BookingReference";
 import { SELECTION_KEY } from "./SearchResults";
 
+export const TRAVELERS_KEY = "booking-travelers";
+
 const emptyTraveler = (): Traveler => ({ firstName: "", lastName: "" });
 
 export default function OrderForm({
