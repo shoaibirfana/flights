@@ -58,9 +58,20 @@ export default function OrderForm({
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
       if (data.checkoutUrl) {
         // Stripe's payment page; the selection stays saved for a retry and for the trip summary.
+        sessionStorage.setItem(
+          TRAVELERS_KEY,
+          JSON.stringify({ booking: encoded, travelers }),
+        );
         window.location.assign(data.checkoutUrl);
         return;
       }
+
+      // Save the traveler names so the trip summary can show the passengers.
+      sessionStorage.setItem(
+        TRAVELERS_KEY,
+        JSON.stringify({ booking: encoded, travelers }),
+      );
+
       // The selection stays saved so the success page can link to the trip summary.
       if (data.pnr || data.duffelOrderId) {
         sessionStorage.setItem(
