@@ -114,7 +114,9 @@ export default function OrderForm({
           <h3 className="mb-4 font-semibold">Traveler {i + 1}</h3>
           <div className="grid gap-4 md:grid-cols-12">
             <div className="md:col-span-6">
-              <label className="label">First / Given Name (as on passport)</label>
+              <label className="label">
+                First / Given Name (as on passport) <span className="text-red-600">*</span>
+              </label>
               <input
                 required
                 className="input"
@@ -123,7 +125,9 @@ export default function OrderForm({
               />
             </div>
             <div className="md:col-span-6">
-              <label className="label">Last / Surname (as on passport)</label>
+              <label className="label">
+                Last / Surname (as on passport) <span className="text-red-600">*</span>
+              </label>
               <input
                 required
                 className="input"
@@ -167,7 +171,9 @@ export default function OrderForm({
         <h3 className="mb-4 font-semibold">Contact Details</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="label">Email (we send your booking reference here)</label>
+            <label className="label">
+              Email (we send your booking reference here) <span className="text-red-600">*</span>
+            </label>
             <input required type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           {needsHoldDetails && (
@@ -187,7 +193,7 @@ export default function OrderForm({
         <label className="mt-4 flex items-start gap-2 text-sm text-gray-700">
           <input type="checkbox" className="mt-1 accent-brand-600" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
           <span>
-            I understand this is a reservation for visa purposes, not a paid ticket, and I agree to the{" "}
+            <span className="text-red-600">*</span> I understand this is a reservation for visa purposes, not a paid ticket, and I agree to the{" "}
             <a href="/terms" target="_blank" className="text-brand-600 underline">
               Terms &amp; Conditions
             </a>{" "}
