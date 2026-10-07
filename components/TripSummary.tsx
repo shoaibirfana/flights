@@ -1,12 +1,14 @@
 "use client";
- 
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   type BookingRequest,
   type Selection,
+  type Traveler,
 } from "@/lib/booking";
 import { site } from "@/lib/site";
+import { TRAVELERS_KEY } from "./OrderForm";
 
 type OrderDetails = {
   orderId: string;
@@ -58,6 +60,20 @@ const pick = (a: string, n: number) =>
   Array.from({ length: n }, () => a[Math.floor(Math.random() * a.length)]).join("");
 const randomReservationCode = () => pick(ALPHANUM, 6);
 const randomAirlineReservationCode = () => pick(DIGITS, 13) + pick(ALPHA, 1) + pick(DIGITS, 1);
+
+// Stable per-booking codes: generate once, store in sessionStorage so refresh keeps the same value.
+function stableCodesFor(encoded: string): { reservation: string; airline: string } {
+  const key = `trip-codes:${encoded}`;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(key) || "null");
+    if (saved?.reservation && saved?.airline) return saved;
+    const codes = { reservation: randomReservationCode(), airline: randomAirlineReservationCode() };
+    sessionStorage.setItem(key, JSON.stringify(codes));
+    return codes;
+  } catch {
+    return { reservation: randomReservationCode(), airline: randomAirlineReservationCode() };
+  }
+}
 
 const nameLines = (name: string): string[] => {
   const words = (name || "").split(/\s+/).filter(Boolean);
@@ -169,7 +185,7 @@ function SegmentCard({ seg }: { seg: Seg }) {
               Flight number: <b>{airlineCode} - {flightNumOnly}</b>
             </div>
             <div>
-              Status: <b>Confirmed</b>
+              Status: <b>On hold (awaiting payment)</b>
             </div>
             {seg.operatedBy && seg.operatedBy !== seg.airline ? (
               <div>
@@ -241,10 +257,8 @@ export default function TripSummary({
   order?: OrderDetails | null;
 }) {
   const [selections, setSelections] = useState<Selection[] | null | undefined>(undefined);
-  const [demoCodes] = useState(() => ({
-    reservation: randomReservationCode(),
-    airline: randomAirlineReservationCode(),
-  }));
+  const [travelers, setTravelers] = useState<Traveler[]>([]);
+  const [demoCodes] = useState(() => stableCodesFor(encoded));
 
   useEffect(() => {
     try {
@@ -252,6 +266,15 @@ export default function TripSummary({
       setSelections(saved?.booking === encoded ? saved.selections : null);
     } catch {
       setSelections(null);
+    }
+  }, [encoded]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(TRAVELERS_KEY) || "null");
+      setTravelers(saved?.booking === encoded && Array.isArray(saved.travelers) ? saved.travelers : []);
+    } catch {
+      setTravelers([]);
     }
   }, [encoded]);
 
@@ -378,7 +401,15 @@ export default function TripSummary({
             <div className="itinerary-traveler-body">
               <div>
                 <div style={{ fontSize: 14, color: "#555" }}>Passenger(s)</div>
-                <div style={{ marginTop: 8, fontSize: 16, fontWeight: 700 }}>MR SHOAIB IRFAN</div>
+                {travelers.length > 0 ? (
+                  travelers.map((t, i) => (
+                    <div key={i} style={{ marginTop: 8, fontSize: 16, fontWeight: 700 }}>
+                      {`${t.firstName} ${t.lastName}`.toUpperCase()}
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ marginTop: 8, fontSize: 16, fontWeight: 700 }}>—</div>
+                )}
               </div>
               <div className="right">
                 <div>Reservation Code</div>
