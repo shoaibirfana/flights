@@ -252,3 +252,16 @@ details.faq[open] > p {
     print-color-adjust: exact;
   }
 }
+
+/* Asterik (Rochart Studio) for the order form's required fields */
+@font-face {
+  font-family: "Asterik";
+  src: url("/fonts/AsterikDemo.ttf") format("truetype");
+  font-display: swap;
+}
+
+.font-asterik {
+  font-family: "Asterik", var(--font-sans);
+  font-size: 1.1em;
+  letter-spacing: 0.02em;
+}
