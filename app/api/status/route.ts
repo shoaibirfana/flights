@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAirports } from "@/lib/providers/liteapi-airports";
 import { duffelLive, holdsAllowed } from "@/lib/hold";
+import { checkMail } from "@/lib/mailer";
 import { duffelEnabled, searchDuffelAirports } from "@/lib/providers/duffel";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,6 @@ export async function GET() {
           ? "on (LIVE mode): every order creates a real airline booking (Duffel bills about $3 each)"
           : "on (LIVE mode, bookings off): live flight data, but orders don't create bookings until DUFFEL_LIVE_HOLDS=on"
       : "off",
-    email: process.env.SMTP_HOST ? "configured" : "not configured (orders are only logged)",
     payments: process.env.STRIPE_SECRET_KEY?.trim()
       ? `on (${process.env.STRIPE_SECRET_KEY.trim().includes("_live_") ? "live" : "test"} mode)`
       : "off (orders are submitted without payment)",
@@ -43,5 +43,6 @@ export async function GET() {
       status.duffelConnection = `FAILED: ${e instanceof Error ? e.message : String(e)}`;
     }
   }
+  Object.assign(status, await checkMail());
   return NextResponse.json(status);
 }
