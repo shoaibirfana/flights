@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   outputFileTracingIncludes: {
     "/api/order": chromiumFiles,
+    "/api/status": chromiumFiles,
     "/api/stripe-webhook": chromiumFiles,
     "/order/success": chromiumFiles,
   },
