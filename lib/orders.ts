@@ -1,5 +1,13 @@
 import { randomBytes } from "crypto";
-import { bookingPrice, describeBooking, validateBooking, type Order, type Selection, type Traveler } from "./booking";
+import {
+  bookingPrice,
+  describeBooking,
+  validateBooking,
+  type FlightSegment,
+  type Order,
+  type Selection,
+  type Traveler,
+} from "./booking";
 import { formatPrice, site } from "./site";
 
 export function newOrderId(): string {
@@ -8,6 +16,22 @@ export function newOrderId(): string {
 }
 
 const clean = (v: unknown, max = 100) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+// One flight of the selected itinerary, used for the PDF sent to the customer.
+function cleanSegment(g: Record<string, unknown>): FlightSegment {
+  const operatedBy = clean(g?.operatedBy, 100);
+  return {
+    flightNumber: clean(g?.flightNumber, 12),
+    airline: clean(g?.airline, 100),
+    from: clean(g?.from, 4),
+    fromName: clean(g?.fromName, 120),
+    to: clean(g?.to, 4),
+    toName: clean(g?.toName, 120),
+    departAt: clean(g?.departAt, 25),
+    arriveAt: clean(g?.arriveAt, 25),
+    ...(operatedBy ? { operatedBy } : {}),
+  };
+}
 
 export function validateOrder(input: unknown): { order: Order; total: number } | { error: string } {
   if (!input || typeof input !== "object") return { error: "Invalid request." };
@@ -25,6 +49,7 @@ export function validateOrder(input: unknown): { order: Order; total: number } |
       ref: clean(s?.ref, 120),
       summary: Array.isArray(s?.summary) ? s.summary.slice(0, 20).map((l: unknown) => clean(l, 200)) : [],
       ...(Array.isArray(s?.display) ? { display: s.display.slice(0, 10).map((l: unknown) => clean(l, 200)) } : {}),
+      ...(Array.isArray(s?.segments) ? { segments: s.segments.slice(0, 12).map(cleanSegment) } : {}),
       ...(/^off_[A-Za-z0-9]+$/.test(offerId) && passengerIds.length && passengerIds.every((p) => /^pas_[A-Za-z0-9]+$/.test(p))
         ? { hold: { offerId, passengerIds } }
         : {}),
