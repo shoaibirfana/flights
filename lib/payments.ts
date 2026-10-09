@@ -6,9 +6,10 @@
 import Stripe from "stripe";
 import type { Order } from "./booking";
 import { holdSummary, placeHold, type HoldRequest } from "./hold";
-import { itineraryFor, type Itinerary } from "./itinerary-pdf";
+import type { Itinerary } from "./itinerary";
 import { sendOrderEmails } from "./notify";
 import { formatPrice, site } from "./site";
+import { siteOrigin } from "./trip-summary-pdf";
 
 export function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY?.trim();
@@ -19,20 +20,20 @@ export const paymentsEnabled = () => Boolean(process.env.STRIPE_SECRET_KEY?.trim
 export const webhookConfigured = () => Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
 
 // Stripe metadata values are limited to 500 characters (50 keys), so the summary is split into parts.
-// Keys: orderId, service, s0…s29 (summary), h0…h4 (hold request), g0…g5 (itinerary for the PDF), plus
+// Keys: orderId, service, s0…s29 (summary), h0…h4 (hold request), g0…g5 (itinerary for the trip summary PDF), plus
 // notified/pnr/duffelOrderId/holdUntil added after payment: 47 at most.
 const CHUNK = 490;
 const MAX_CHUNKS = 30;
 const ITINERARY_CHUNKS = 6;
 
-// The itinerary as JSON for the metadata; airport names are dropped if it would not fit.
+// The itinerary as JSON for the metadata; airport names and logos are dropped if it would not fit.
 function packItinerary(itinerary: Itinerary): string {
   if (!itinerary.segments.length) return "";
   const full = JSON.stringify(itinerary);
   if (full.length <= CHUNK * ITINERARY_CHUNKS) return full;
   const short = JSON.stringify({
     ...itinerary,
-    segments: itinerary.segments.map((g) => ({ ...g, fromName: g.from, toName: g.to })),
+    segments: itinerary.segments.map((g) => ({ ...g, fromName: g.from, toName: g.to, logo: undefined })),
   });
   return short.length <= CHUNK * ITINERARY_CHUNKS ? short : "";
 }
@@ -67,6 +68,7 @@ export async function createCheckout(opts: {
   origin: string;
   cancelPath: string;
   holdRequest?: HoldRequest | null;
+  itinerary: Itinerary;
 }): Promise<string> {
   const stripe = getStripe()!;
   const { orderId, order, total } = opts;
@@ -94,7 +96,7 @@ export async function createCheckout(opts: {
       service: order.booking.service,
       ...pack("s", opts.summary, MAX_CHUNKS),
       ...(opts.holdRequest ? pack("h", JSON.stringify(opts.holdRequest), 5) : {}),
-      ...pack("g", packItinerary(itineraryFor(order)), ITINERARY_CHUNKS),
+      ...pack("g", packItinerary(opts.itinerary), ITINERARY_CHUNKS),
     },
     payment_intent_data: { description: `${site.name} order ${orderId}`, metadata: { orderId } },
     success_url: `${opts.origin}/order/success?id=${encodeURIComponent(orderId)}&session_id={CHECKOUT_SESSION_ID}`,
@@ -130,7 +132,7 @@ export async function notifyPaid(session: Stripe.Checkout.Session) {
   }
 
   const summary = `PAYMENT RECEIVED: ${paid} ${site.currency} (Stripe ${session.payment_intent ?? session.id})\n\n${holdText}${unpack(meta, "s", MAX_CHUNKS)}`;
-  if (email) await sendOrderEmails(orderId, summary, email, meta.service || "visa", unpackItinerary(meta), extra.pnr);
+  if (email) await sendOrderEmails(orderId, summary, email, meta.service || "visa", unpackItinerary(meta), siteOrigin());
   await getStripe()!.checkout.sessions.update(session.id, { metadata: { notified: "1", ...extra } });
   return extra;
 }

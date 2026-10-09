@@ -48,14 +48,23 @@ export default function OrderForm({
     setError("");
     if (!agree) return setError("Please accept the Terms & Conditions to continue.");
     setLoading(true);
+    // The trip summary page keeps its codes here; the emailed trip summary PDF uses the same ones.
+    const codesKey = `trip-codes:${encoded}`;
+    let codes: unknown = null;
+    try {
+      codes = JSON.parse(sessionStorage.getItem(codesKey) || "null");
+    } catch {
+      // Storage unavailable; the server picks the codes.
+    }
     try {
       const res = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking, selections, travelers, contact: { email, phone } }),
+        body: JSON.stringify({ booking, selections, travelers, contact: { email, phone }, codes }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
+      if (data.codes) sessionStorage.setItem(codesKey, JSON.stringify(data.codes));
       if (data.checkoutUrl) {
         // Stripe's payment page; the selection stays saved for a retry and for the trip summary.
         sessionStorage.setItem(

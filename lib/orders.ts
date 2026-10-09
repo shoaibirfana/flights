@@ -17,9 +17,10 @@ export function newOrderId(): string {
 
 const clean = (v: unknown, max = 100) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-// One flight of the selected itinerary, used for the PDF sent to the customer.
+// One flight of the selected itinerary, used for the trip summary PDF sent to the customer.
 function cleanSegment(g: Record<string, unknown>): FlightSegment {
   const operatedBy = clean(g?.operatedBy, 100);
+  const logo = clean(g?.logo, 300);
   return {
     flightNumber: clean(g?.flightNumber, 12),
     airline: clean(g?.airline, 100),
@@ -30,6 +31,7 @@ function cleanSegment(g: Record<string, unknown>): FlightSegment {
     departAt: clean(g?.departAt, 25),
     arriveAt: clean(g?.arriveAt, 25),
     ...(operatedBy ? { operatedBy } : {}),
+    ...(/^https:\/\//.test(logo) ? { logo } : {}),
   };
 }
 

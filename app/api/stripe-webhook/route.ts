@@ -4,6 +4,9 @@ import { getStripe, notifyPaid } from "@/lib/payments";
 
 // Stripe calls this after a payment. Endpoint: https://YOUR-SITE/api/stripe-webhook
 // Events: checkout.session.completed, checkout.session.async_payment_succeeded
+// Rendering the trip summary PDF for the email takes a few seconds.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const stripe = getStripe();
   const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();

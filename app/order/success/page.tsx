@@ -8,6 +8,8 @@ import { getStripe, notifyPaid, webhookConfigured } from "@/lib/payments";
 
 export const metadata: Metadata = { title: "Order Received" };
 export const dynamic = "force-dynamic";
+// Without a Stripe webhook this page sends the order emails, including the trip summary PDF.
+export const maxDuration = 60;
 
 type PaymentState = "none" | "paid" | "unpaid";
 type Checked = { state: PaymentState; pnr?: string; holdUntil?: string };
