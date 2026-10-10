@@ -15,7 +15,7 @@ export const site = {
 
 export const pricing = {
   // Price per traveler for a one-way or round-trip flight reservation
-  flight: 1,
+  flight: 12.99,
   // Extra per traveler for every multi-city leg beyond the second
   extraFlightLeg: 0,
 };
@@ -31,7 +31,8 @@ export function calculatePrice(opts: {
   const travelers = Math.max(1, Math.min(10, Math.floor(opts.travelers || 1)));
   const legs = Math.max(1, Math.min(6, Math.floor(opts.legs || 1)));
   const extraLegs = Math.max(0, legs - 2);
-  return (pricing.flight + extraLegs * pricing.extraFlightLeg) * travelers;
+  // Rounded to whole cents (12.99 × 3 would otherwise be 38.970000000000006)
+  return Math.round((pricing.flight + extraLegs * pricing.extraFlightLeg) * travelers * 100) / 100;
 }
 
 export function formatPrice(amount: number): string {

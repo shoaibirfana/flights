@@ -17,7 +17,7 @@ export default function OrderForm({
 }: {
   booking: BookingRequest;
   encoded: string;
-  // Button text when online payment is on (e.g. "Pay $12 →"); null when orders are submitted without payment
+  // Button text when online payment is on (e.g. "Pay $12.99 →"); null when orders are submitted without payment
   payLabel: string | null;
 }) {
   const [selections, setSelections] = useState<Selection[] | null | undefined>(undefined);
