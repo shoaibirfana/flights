@@ -5,7 +5,7 @@ import { faqs } from "@/lib/faqs";
 
 export const metadata: Metadata = {
   title: "FAQ: Flight Reservation for Visa",
-  description: "Answers about flight reservations for visa applications: PNR, validity, date changes and more.",
+  description: "Answers about flight reservations for visa applications: delivery, validity, date changes and more.",
 };
 
 export default function FaqPage() {

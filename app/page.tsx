@@ -32,8 +32,8 @@ const steps: { title: string; text: string; icon: IconName }[] = [
 
 const features: { title: string; text: string; icon: IconName }[] = [
   {
-    title: "Verifiable booking reference",
-    text: "Every reservation comes with an airline booking reference (PNR) that can be checked while it's valid.",
+    title: "Clear flight itinerary",
+    text: "Your trip summary shows the airline, flight numbers, times and traveler names in one clean PDF.",
     icon: "shield",
   },
   {
@@ -112,7 +112,7 @@ export default function Home() {
               Your visa flight reservation, <span className="text-cream">without buying a ticket</span>
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base text-white/80 md:text-lg">
-              Search live flights, choose your route and get an airline booking reference for Schengen, UK, USA,
+              Search live flights, choose your route and download your flight itinerary for Schengen, UK, USA,
               Canada and other visa applications.
             </p>
             <ul className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-white/80">
@@ -187,9 +187,9 @@ export default function Home() {
           <p className="text-xs font-semibold tracking-[0.2em] text-brand-500 uppercase">Good to know</p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">What is a flight reservation for a visa?</h2>
           <p className="mt-5 leading-relaxed text-gray-700">
-            It&apos;s an airline booking that shows your planned travel: your name, flights, dates and a booking
-            reference (PNR). Embassies and consulates use it to check your travel plans before issuing a visa, and
-            you don&apos;t have to pay for a full ticket.
+            It&apos;s a flight itinerary that shows your planned travel: your name, flights and dates. Embassies and
+            consulates ask for your travel plans before issuing a visa, and you don&apos;t have to pay for a full
+            ticket.
           </p>
           <p className="mt-4 leading-relaxed text-gray-700">
             Many embassies, including the Schengen countries, the UK, Canada and Australia, advise{" "}
@@ -208,7 +208,7 @@ export default function Home() {
               {[
                 ["Price", `From ${formatPrice(pricing.flight)}`, "Full fare, often non-refundable"],
                 ["If the visa is refused", "Nothing more to pay", "Money may be lost"],
-                ["Booking reference", "Yes", "Yes"],
+                ["Ready", "Instantly, as a PDF", "After purchase"],
                 ["Can be used to fly", "No", "Yes"],
               ].map(([label, ours, ticket]) => (
                 <li key={label} className="grid grid-cols-3 gap-3 border-t border-white/10 pt-4">
@@ -237,7 +237,7 @@ export default function Home() {
               <ul className="mt-8 space-y-3 text-sm">
                 {[
                   "One-way, round-trip or multi-city",
-                  "Airline booking reference (PNR)",
+                  "Instant PDF trip summary",
                   "Free date changes",
                   pricing.extraFlightLeg > 0
                     ? `Multi-city: +${formatPrice(pricing.extraFlightLeg)} per extra flight`

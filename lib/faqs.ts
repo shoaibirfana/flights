@@ -3,11 +3,7 @@ import { pricing, formatPrice } from "./site";
 export const faqs: { q: string; a: string }[] = [
   {
     q: "What is a flight reservation for a visa?",
-    a: "It's a real airline booking (not a paid ticket) with your name, flight details and a booking reference (PNR). It shows the embassy your planned travel without you buying a full ticket before your visa is approved.",
-  },
-  {
-    q: "Is the reservation verifiable?",
-    a: "Yes. Every reservation comes with an airline booking reference (PNR), which can be checked on the airline's website or through a travel agent while it's valid.",
+    a: "It's a flight itinerary (not a paid ticket) with your name, flight details and travel dates. It shows the embassy your planned travel without you buying a full ticket before your visa is approved.",
   },
   {
     q: "How long does it take to receive my reservation?",
@@ -19,7 +15,7 @@ export const faqs: { q: string; a: string }[] = [
   },
   {
     q: "How long is the reservation valid?",
-    a: "Airlines release unpaid reservations after a set period, which varies by airline. We recommend ordering close to your visa appointment. If you need it to stay valid longer, contact us.",
+    a: "We recommend ordering close to your visa appointment so your itinerary matches your travel plans. If your dates change, contact us and we'll update it.",
   },
   {
     q: "Can I change my travel dates?",

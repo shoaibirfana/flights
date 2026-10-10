@@ -22,7 +22,7 @@ export default function AboutPage() {
         <h2>Why travelers choose us</h2>
         <ul>
           <li>Live flight schedules from real airlines</li>
-          <li>Verifiable airline booking references (PNR)</li>
+          <li>Instant PDF trip summary</li>
           <li>Free date changes</li>
           <li>Support by email</li>
         </ul>

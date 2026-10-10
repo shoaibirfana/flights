@@ -6,11 +6,11 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {
-    default: `Flight Reservation for Visa | Verifiable PNR | ${site.name}`,
+    default: `Flight Reservation for Visa | ${site.name}`,
     template: `%s | ${site.name}`,
   },
   description:
-    "Get a verifiable flight reservation with an airline booking reference (PNR) for your visa application. Schengen, UK, Canada, USA and more. Instant PDF download, free date changes.",
+    "Get a flight reservation itinerary for your visa application in minutes. Schengen, UK, Canada, USA and more. Instant PDF download, free date changes.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

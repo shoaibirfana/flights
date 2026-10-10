@@ -14,9 +14,9 @@ export default function TermsPage() {
         </p>
         <h2>1. Service</h2>
         <p>
-          {site.name} provides flight reservations for use as supporting documents in visa applications. A
-          reservation is held by the airline but not paid or ticketed, so it can&apos;t be used to board a flight. To
-          travel, the booking must be paid and ticketed before the airline&apos;s deadline.
+          {site.name} provides flight itineraries (trip summaries) for use as supporting documents in visa
+          applications. An itinerary is not a paid ticket and can&apos;t be used to board a flight. To travel, buy a
+          ticket from the airline or a travel agent.
         </p>
         <h2>2. Customer responsibilities</h2>
         <p>
@@ -25,8 +25,8 @@ export default function TermsPage() {
         </p>
         <h2>3. Validity</h2>
         <p>
-          Airlines cancel unpaid reservations after a period they set. We don&apos;t guarantee that a
-          reservation stays active for any particular length of time.
+          Your itinerary shows the flights available when you ordered. Airline schedules can change, and we
+          don&apos;t guarantee that a flight stays available for any particular length of time.
         </p>
         <h2>4. Visa decisions</h2>
         <p>

@@ -25,8 +25,8 @@ export default function PrivacyPage() {
         </ul>
         <h2>Sharing</h2>
         <p>
-          We share your details only with the airlines and booking providers needed to make your
-          reservation. We don&apos;t sell your personal data.
+          We share your details only with the payment and email providers needed to process your order. We
+          don&apos;t sell your personal data.
         </p>
         <h2>Contact</h2>
         <p>For privacy requests, email {site.email}.</p>
