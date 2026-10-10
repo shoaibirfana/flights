@@ -107,7 +107,7 @@ function PartnerStrip() {
           key={n}
           src={`/partners/${n}.png`}
           alt=""
-          style={{ height: 30, maxWidth: 64, objectFit: "contain" }}
+          style={{ height: 44, maxWidth: 96, objectFit: "contain" }}
         />
       ))}
     </div>
@@ -187,7 +187,7 @@ function SegmentCard({ seg }: { seg: Seg }) {
               Flight number: <b>{airlineCode} - {flightNumOnly}</b>
             </div>
             <div>
-              Status: <b>On hold (awaiting payment)</b>
+              Status: <b>Confirmed</b>
             </div>
             {seg.operatedBy && seg.operatedBy !== seg.airline ? (
               <div>
@@ -233,7 +233,7 @@ function SegmentCard({ seg }: { seg: Seg }) {
           <div>Class Of Service:</div>
           <div className="itinerary-dim">Economy</div>
           <div style={{ marginTop: 8 }}>Plane:</div>
-          <div className="itinerary-dim">—</div>
+          <div className="itinerary-dim"></div>
           <div style={{ marginTop: 8 }}>Meals:</div>
           <div className="itinerary-dim">
             {MEALS.map((l) => (
@@ -358,7 +358,7 @@ export default function TripSummary({
         .itinerary-leg-name { font-size:12px; line-height:15px; margin-top:6px; color:#333; }
         .itinerary-leg-time { font-size:20px; font-weight:700; margin-top:10px; }
         .itinerary-leg-date { font-size:13px; color:#555; }
-        .itinerary-partners { width:818px; margin-top:24px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px 12px; break-inside:avoid; }
+        .itinerary-partners { width:818px; margin-top:24px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:14px 18px; break-inside:avoid; }
         @media print {
           @page { size:A4; margin:8mm; }
           body { background:#fff !important; }
