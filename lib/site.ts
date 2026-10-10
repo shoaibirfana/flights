@@ -15,7 +15,7 @@ export const site = {
 
 export const pricing = {
   // Price per traveler for a one-way or round-trip flight reservation
-  flight: 12,
+  flight: 1,
   // Extra per traveler for every multi-city leg beyond the second
   extraFlightLeg: 0,
 };
