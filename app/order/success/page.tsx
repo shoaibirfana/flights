@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { holdsAllowed } from "@/lib/hold";
-import { duffelEnabled } from "@/lib/providers/duffel";
 import type { Metadata } from "next";
 import BookingReference, { StoredBookingReference } from "@/components/BookingReference";
 import TripSummaryLink from "@/components/TripSummaryLink";
@@ -41,8 +39,6 @@ export default async function SuccessPage({
   const { id, session_id } = await searchParams;
   const orderId = (id ?? "").replace(/[^A-Z0-9-]/gi, "").slice(0, 30);
   const { state: payment, pnr, holdUntil } = await checkPayment(session_id, orderId);
-  // LiteAPI (or live Duffel with bookings off): the team makes the reservation by hand.
-  const autoBooking = duffelEnabled() && holdsAllowed();
 
   if (payment === "unpaid") {
     return (
@@ -75,9 +71,8 @@ export default async function SuccessPage({
         payment === "none" && <StoredBookingReference orderId={orderId} />
       )}
       <p className="mt-4 leading-relaxed text-gray-600">
-        We&apos;ve emailed you a confirmation of your order.{" "}
-        {!pnr && !autoBooking && "Our team will reserve your flight and email you the booking reference shortly. "}
-        Contact us if you have any questions about your reservation.
+        We&apos;ve emailed your trip summary (PDF) to you. You can also download it right now by clicking{" "}
+        <strong>View trip summary</strong> below. Contact us if you have any questions about your reservation.
       </p>
       <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
         <Link href="/" className="btn-primary">

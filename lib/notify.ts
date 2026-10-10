@@ -61,12 +61,29 @@ export async function sendOrderEmails(
     customerEmail,
     attachments,
   );
+  const first = itinerary?.travelers[0];
   await sendMail(
     customerEmail,
-    `We received your order ${orderId}`,
-    `Thank you for your order with ${site.name}.\n\n${
-      pdf ? "Your flight itinerary is attached as a PDF.\n\n" : ""
-    }Our team will contact you shortly to confirm your reservation.\n\n${customerSummary(summary)}\n\nQuestions? Reply to this email or contact us at ${site.email}.`,
+    `Your ${site.name} trip summary – Order ${orderId}`,
+    [
+      `Dear ${first ? `${first.firstName} ${first.lastName}` : "Customer"},`,
+      "",
+      `Thank you for choosing ${site.name}. Your order has been received successfully.`,
+      "",
+      pdf
+        ? "Your trip summary is attached to this email as a PDF. You can download and print it for your records."
+        : "You can view and download your trip summary from the order confirmation page.",
+      "",
+      "ORDER DETAILS",
+      "-------------",
+      customerSummary(summary),
+      "",
+      `If you have any questions, simply reply to this email or write to us at ${site.email}.`,
+      "",
+      "Kind regards,",
+      `The ${site.name} Team`,
+      site.email,
+    ].join("\n"),
     undefined,
     attachments,
   );

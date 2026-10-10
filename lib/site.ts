@@ -2,7 +2,7 @@
 export const site = {
   name: "Viza Bunny",
   tagline: "Flight reservations for visa applications",
-  email: "support@example.com",
+  email: "support@vizabunny.com",
   // Where new orders are emailed (ORDER_NOTIFY_EMAIL in Vercel overrides it)
   orderEmail: "shoaibirfana@gmail.com",
   // International format, digits only (used for WhatsApp links)
