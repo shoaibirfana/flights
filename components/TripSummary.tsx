@@ -97,15 +97,17 @@ const MEALS = ["Drinks and quality", "products offered", "for sale"];
 type Seg = NonNullable<Selection["segments"]>[number] & { logo?: string | null };
 
 function PartnerStrip() {
+  // Skip 3.png and 5.png (not used); show the rest in full colour.
+  const numbers = Array.from({ length: 19 }, (_, i) => i + 1).filter((n) => n !== 3 && n !== 5);
   return (
     <div className="itinerary-partners">
-      {Array.from({ length: 19 }, (_, i) => i + 1).map((n) => (
+      {numbers.map((n) => (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={n}
           src={`/partners/${n}.png`}
           alt=""
-          style={{ height: 30, maxWidth: 64, objectFit: "contain", filter: "grayscale(1)" }}
+          style={{ height: 30, maxWidth: 64, objectFit: "contain" }}
         />
       ))}
     </div>
