@@ -24,8 +24,8 @@ const steps: { title: string; text: string; icon: IconName }[] = [
     icon: "user",
   },
   {
-    title: "Get your reference",
-    text: "We reserve your flight with the airline and email you the booking reference (PNR).",
+    title: "Download instantly",
+    text: "Download your trip summary (PDF) right away on the website. A copy is also emailed to you.",
     icon: "mail",
   },
 ];
@@ -37,8 +37,8 @@ const features: { title: string; text: string; icon: IconName }[] = [
     icon: "shield",
   },
   {
-    title: "Delivered by email",
-    text: "Your booking reference arrives by email, ready to add to your visa application.",
+    title: "Instant download",
+    text: "Your trip summary PDF is ready to download as soon as you place your order, with a copy sent to your email.",
     icon: "clock",
   },
   {
@@ -58,12 +58,12 @@ const features: { title: string; text: string; icon: IconName }[] = [
   },
   {
     title: "Real people, quick help",
-    text: "Questions about your reservation? Reply to your confirmation email and we'll help.",
+    text: "Questions about your reservation? Email us at support@vizabunny.com and we'll help.",
     icon: "chat",
   },
 ];
 
-const trust = ["Live airline data", "Any destination", "Email delivery", `From ${formatPrice(pricing.flight)}`];
+const trust = ["Live airline data", "Any destination", "Instant PDF download", `From ${formatPrice(pricing.flight)}`];
 
 function HeroBackdrop() {
   return (

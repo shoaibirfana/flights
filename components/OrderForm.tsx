@@ -194,7 +194,7 @@ export default function OrderForm({
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="label">
-              Email (we send your booking reference here) <span className="text-red-600">*</span>
+              Email (we also send your trip summary here) <span className="text-red-600">*</span>
             </label>
             <input required type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>

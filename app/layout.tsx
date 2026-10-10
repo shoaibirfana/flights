@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: `%s | ${site.name}`,
   },
   description:
-    "Get a verifiable flight reservation with an airline booking reference (PNR) for your visa application. Schengen, UK, Canada, USA and more. Fast delivery, free date changes.",
+    "Get a verifiable flight reservation with an airline booking reference (PNR) for your visa application. Schengen, UK, Canada, USA and more. Instant PDF download, free date changes.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

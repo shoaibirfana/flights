@@ -2,20 +2,18 @@ import type { Metadata } from "next";
 import Icon, { type IconName } from "@/components/Icon";
 import PageHeader from "@/components/PageHeader";
 import Reveal from "@/components/Reveal";
-import { site, whatsappLink } from "@/lib/site";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Contact Us" };
 
 export default function ContactPage() {
   const cards: { icon: IconName; title: string; text: string; href?: string }[] = [
-    { icon: "chat", title: "WhatsApp", text: site.phoneDisplay, href: whatsappLink() },
     { icon: "mail", title: "Email", text: site.email, href: `mailto:${site.email}` },
-    { icon: "pin", title: "Office", text: site.address },
   ];
   return (
     <>
       <PageHeader title="Contact Us" subtitle="We're here to help with your visa reservation." />
-      <div className="mx-auto grid max-w-5xl gap-6 px-4 py-16 md:grid-cols-3">
+      <div className="mx-auto grid max-w-md gap-6 px-4 py-16">
         {cards.map((c, i) => {
           const body = (
             <>

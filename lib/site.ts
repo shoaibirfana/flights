@@ -5,10 +5,6 @@ export const site = {
   email: "support@vizabunny.com",
   // Where new orders are emailed (ORDER_NOTIFY_EMAIL in Vercel overrides it)
   orderEmail: "shoaibirfana@gmail.com",
-  // International format, digits only (used for WhatsApp links)
-  whatsapp: "923000000000",
-  phoneDisplay: "+92 300 0000000",
-  address: "Your office address, City, Country",
   currency: "USD",
   currencySymbol: "$",
   social: {
@@ -40,9 +36,4 @@ export function calculatePrice(opts: {
 
 export function formatPrice(amount: number): string {
   return `${site.currencySymbol}${amount.toFixed(amount % 1 === 0 ? 0 : 2)}`;
-}
-
-export function whatsappLink(text?: string): string {
-  const base = `https://wa.me/${site.whatsapp}`;
-  return text ? `${base}?text=${encodeURIComponent(text)}` : base;
 }

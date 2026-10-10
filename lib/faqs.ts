@@ -11,7 +11,7 @@ export const faqs: { q: string; a: string }[] = [
   },
   {
     q: "How long does it take to receive my reservation?",
-    a: "Most orders are processed and emailed within a few hours during business hours. If you need it urgently, message us on WhatsApp after placing your order.",
+    a: "Instantly. As soon as you place your order you can download your trip summary (PDF) on the website, and a copy is also emailed to you. Questions? Email us at support@vizabunny.com.",
   },
   {
     q: "Which visas can I use it for?",
