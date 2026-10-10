@@ -106,10 +106,13 @@ export async function createCheckout(opts: {
   return session.url;
 }
 
-// Once per paid session: creates the flight hold (if any), sends the order emails, then marks the
-// session as notified and stores the booking reference on it.
+// Once per paid session: creates the flight hold (if any) and sends the order emails. Called by the
+// success page and by the Stripe webhook; whichever comes first marks the session as notified before
+// sending, so the customer gets one email. If sending fails, the mark is removed so the next call retries.
 export async function notifyPaid(session: Stripe.Checkout.Session) {
   if (session.payment_status !== "paid" || session.metadata?.notified === "1") return;
+  const stripe = getStripe()!;
+  await stripe.checkout.sessions.update(session.id, { metadata: { notified: "1" } });
   const meta = session.metadata ?? {};
   const orderId = meta.orderId || session.client_reference_id || session.id;
   const email = session.customer_details?.email || session.customer_email;
@@ -132,7 +135,12 @@ export async function notifyPaid(session: Stripe.Checkout.Session) {
   }
 
   const summary = `PAYMENT RECEIVED: ${paid} ${site.currency} (Stripe ${session.payment_intent ?? session.id})\n\n${holdText}${unpack(meta, "s", MAX_CHUNKS)}`;
-  if (email) await sendOrderEmails(orderId, summary, email, meta.service || "visa", unpackItinerary(meta), siteOrigin());
-  await getStripe()!.checkout.sessions.update(session.id, { metadata: { notified: "1", ...extra } });
+  try {
+    if (email) await sendOrderEmails(orderId, summary, email, meta.service || "visa", unpackItinerary(meta), siteOrigin());
+  } catch (e) {
+    await stripe.checkout.sessions.update(session.id, { metadata: { notified: "" } }).catch(() => {});
+    throw e;
+  }
+  if (Object.keys(extra).length) await stripe.checkout.sessions.update(session.id, { metadata: extra });
   return extra;
 }
