@@ -99,7 +99,7 @@ type Seg = NonNullable<Selection["segments"]>[number] & { logo?: string | null }
 function PartnerStrip() {
   return (
     <div className="itinerary-partners">
-      {Array.from({ length: 11 }, (_, i) => i + 1).map((n) => (
+      {Array.from({ length: 19 }, (_, i) => i + 1).map((n) => (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={n}
@@ -356,7 +356,7 @@ export default function TripSummary({
         .itinerary-leg-name { font-size:12px; line-height:15px; margin-top:6px; color:#333; }
         .itinerary-leg-time { font-size:20px; font-weight:700; margin-top:10px; }
         .itinerary-leg-date { font-size:13px; color:#555; }
-        .itinerary-partners { width:818px; margin-top:24px; display:flex; justify-content:space-between; align-items:center; gap:6px; break-inside:avoid; }
+        .itinerary-partners { width:818px; margin-top:24px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px 12px; break-inside:avoid; }
         @media print {
           @page { size:A4; margin:8mm; }
           body { background:#fff !important; }
